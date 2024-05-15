@@ -9,16 +9,16 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.0.0",
+    "@quasar/extras": "^1.16.11",
     "axios": "^0.21.1",
     "pinia": "^2.0.11",
-    "quasar": "^2.6.0",
+    "quasar": "^2.16.4",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0",
     "vue3-json-source-viewer": "^2.4.1"
   },
   "devDependencies": {
-    "@quasar/app-vite": "^1.0.0",
+    "@quasar/app-vite": "^1.9.3",
     "autoprefixer": "^10.4.2",
     "postcss": "^8.4.14"
   },
