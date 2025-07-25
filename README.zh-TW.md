@@ -2,6 +2,8 @@
 
 2023rubbish
 
+[English](README.md)
+
 ## 安裝相依套件
 ```bash
 yarn
@@ -24,7 +26,8 @@ quasar build
 位於 `.github/workflows/deploy.yml` 的自動化流程會在推送到 `main` 分支時自動完成此部署。
 
 ### Cloudflare Worker Proxy
-Worker 原始碼位於 `cloudflare/steep-smoke-0e4c`。切換到該目錄後執行下列指令：
+Worker 原始碼位於 `cloudflare/steep-smoke-0e4c`。切換到該目錄後執行下列指令。
+更多資訊請見 [Cloudflare 部署說明](cloudflare/readme.zh-TW.md)。
 ```bash
 cd cloudflare/steep-smoke-0e4c
 # 啟動本機開發伺服器
