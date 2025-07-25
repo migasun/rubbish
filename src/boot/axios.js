@@ -7,8 +7,11 @@ import axios from 'axios'
 // good idea to move this instance creation inside of the
 // "export default () => {}" function below (which runs individually
 // for each client)
-// URL of the Cloudflare Worker proxy used by the application
-const API_BASE_URL = 'https://your-cloudflare-worker.example.com'
+// Base URL for the backend proxy. Allows overriding via `VITE_API_BASE_URL`
+// when running the Quasar application.
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  'https://your-cloudflare-worker.example.com'
 
 const api = axios.create({ baseURL: API_BASE_URL })
 
