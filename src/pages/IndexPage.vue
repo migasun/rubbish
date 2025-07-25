@@ -106,7 +106,7 @@
           data60
           <JsonViewer :value="data60" copyable sort boxed show-array-index />
           <template v-if="data60.points">
-            <q-card-section v-for="point in data24.points.point ">
+            <q-card-section v-for="point in data60.points.point ">
               {{ point }}
             </q-card-section>
           </template>
