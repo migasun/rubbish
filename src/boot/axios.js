@@ -11,7 +11,7 @@ import axios from 'axios'
 // when running the Quasar application.
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  'https://your-cloudflare-worker.example.com'
+  'https://steep-smoke-0e4c.vega-0b1.workers.dev'
 
 const api = axios.create({ baseURL: API_BASE_URL })
 
