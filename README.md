@@ -29,5 +29,6 @@ Deploy `cloudflare/worker.js` on Cloudflare Workers and note the URL it
 provides. Copy `.env.example` to `.env` and set `VITE_API_BASE_URL` to that URL
 so the front-end can retrieve garbage truck data through the worker.
 
+
 ### Customize the configuration
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).

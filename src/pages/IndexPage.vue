@@ -139,6 +139,7 @@ export default defineComponent({
 <script setup>
 import {onBeforeMount, ref} from "vue";
 import axios from "axios";
+import { API_BASE_URL } from "src/boot/axios";
 // 參考 https://github.com/SmartCodeDavid/vue3-json-viewer/blob/master/readme_cn.md
 import { JsonViewer } from "vue3-json-source-viewer"
 import "vue3-json-source-viewer/dist/index.css"
