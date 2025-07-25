@@ -52,3 +52,8 @@ data through the worker.
 
 ### Customize the configuration
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+

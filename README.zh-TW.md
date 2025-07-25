@@ -42,3 +42,8 @@ wrangler deploy
 
 ### 自訂設定
 請參考 [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js)。
+
+## 授權條款
+
+此專案採用 [MIT 授權條款](LICENSE)。
+
