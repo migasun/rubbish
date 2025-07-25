@@ -2,6 +2,8 @@
 
 2023rubbish
 
+[繁體中文](README.zh-TW.md)
+
 ## Install the dependencies
 ```bash
 yarn
