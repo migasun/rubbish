@@ -16,12 +16,12 @@ yarn
 
 ### 在開發模式啟動應用程式（含熱重新載入與錯誤回報）
 ```bash
-quasar dev
+npx quasar dev
 ```
 
 ### 建構正式版
 ```bash
-quasar build
+npx quasar build
 ```
 
 ### 部署到 GitHub Pages
@@ -38,7 +38,7 @@ cd cloudflare/steep-smoke-0e4c
 wrangler dev --remote
 # 開發伺服器預設埠為 http://localhost:8787
 # 在前端執行 Quasar 時使用下列指令連向它
-# `VITE_API_BASE_URL=http://localhost:8787 quasar dev`
+# `VITE_API_BASE_URL=http://localhost:8787 npx quasar dev`
 # 部署至 Cloudflare
 wrangler deploy
 ```
