@@ -18,6 +18,7 @@ async function handleRequest(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const isLine24 = searchParams.has('line24');
   const isLine60 = searchParams.has('line60');
+  console.log('Request params', { isLine24, isLine60 });
   let url = '';
   if (isLine24) {
     url = 'https://crd-rubbish.epd.ntpc.gov.tw/dispProject/api/line-status.ashx?lineid=235024';
@@ -33,8 +34,10 @@ async function handleRequest(request: Request): Promise<Response> {
   }
 
   try {
+    console.log('Fetching from', url);
     const resp = await fetch(url);
     const xml = await resp.text();
+    console.log('Fetched XML size', xml.length);
     const doc = new DOMParser().parseFromString(xml, 'application/xml');
     const json = xmlToJson(doc);
     const body = JSON.stringify({ line: json });
@@ -45,6 +48,7 @@ async function handleRequest(request: Request): Promise<Response> {
       },
     });
   } catch (err: any) {
+    console.error('Request failed', err);
     return new Response('Failed to fetch data', {
       status: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },
