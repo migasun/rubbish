@@ -228,7 +228,7 @@ axios.get(API_BASE_URL + '?line60=true')
     }
 
     data60.value.points.point.forEach(item => {
-      if (parseInt(item.id?.['#text'] ?? item.id) === 797354) {
+      if (parseInt(item.id?.['#text'] ?? item.id) === 995714) {
         home_point60.value = item;
       }
     });
