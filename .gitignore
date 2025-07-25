@@ -28,5 +28,4 @@ yarn-error.log*
 *.njsproj
 *.sln
 /.vscode/
-/web/test/rubbish/spa/
 /yarn.lock
