@@ -51,7 +51,11 @@ wrangler dev --remote
 wrangler deploy
 ```
 
-After deploying, note the URL Wrangler prints. Copy `.env.example` to `.env` and set `VITE_API_BASE_URL` to that URL so the front-end can retrieve garbage truck data through the worker.
+This project is preconfigured to use the hosted worker at
+`https://steep-smoke-0e4c.vega-0b1.workers.dev`. If you deploy your own
+worker, copy `.env.example` to `.env` and update `VITE_API_BASE_URL` to
+point to the new URL so the front-end can retrieve garbage truck data
+through it.
 
 
 ### Customize the configuration

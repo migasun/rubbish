@@ -52,7 +52,10 @@ wrangler dev --remote
 wrangler deploy
 ```
 
-部署完成後，請記下 Wrangler 輸出的網址。將 `.env.example` 複製為 `.env`，並將 `VITE_API_BASE_URL` 設定為該網址，讓前端能透過 worker 取得垃圾車資料。
+本專案預設會使用 Cloudflare 上的 worker
+`https://steep-smoke-0e4c.vega-0b1.workers.dev`。若自行部署 worker，請複製
+`.env.example` 為 `.env`，並將 `VITE_API_BASE_URL` 改為新的網址，讓前端能透過
+新的 worker 取得垃圾車資料。
 
 ### 自訂設定
 請參考 [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js)。
