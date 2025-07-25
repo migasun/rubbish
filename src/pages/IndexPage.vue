@@ -181,13 +181,14 @@ function refresh(done){
     .then(res => {
       console.log("Data 24 Loaded!")
       console.log("res.data.data 24", res.data)
-      data24.value = res.data.line.data
-      if(data24.value.arrival >0 ){
-        arrival24.value = data24.value.arrival
-        arrival_point24.value = data24.value.points.point[arrival24.value-1];
+      data24.value = res.data.line
+      const arrivalIdx24 = parseInt(data24.value.arrival?.['#text'] ?? data24.value.arrival)
+      if(arrivalIdx24 > 0){
+        arrival24.value = arrivalIdx24
+        arrival_point24.value = data24.value.points.point[arrivalIdx24-1];
       }
       data24.value.points.point.forEach(item => {
-        if (item.id === 894299) {
+        if (parseInt(item.id?.['#text'] ?? item.id) === 894299) {
           home_point24.value = item;
         }
       });
@@ -196,10 +197,16 @@ function refresh(done){
       inService.value = (home_point24.value.schedule === '停止收運') ?  "停止收運" : inService.value;
 
       data24placemap.value = "https://www.google.com/maps/place/"+data24.value.place
-      arrival_map24.value = "https://maps.nlsc.gov.tw/go/" + arrival_point24.value.longitude + "/" + arrival_point24.value.latitude + "/15/EMAP_B/DMAPS,ROAD";
-      home_map24.value = "https://maps.nlsc.gov.tw/go/" + home_point24.value.longitude + "/" + home_point24.value.latitude + "/15/EMAP_B/DMAPS,ROAD";
+      const aLon24 = arrival_point24.value.longitude?.['#text'] ?? arrival_point24.value.longitude
+      const aLat24 = arrival_point24.value.latitude?.['#text'] ?? arrival_point24.value.latitude
+      const hLon24 = home_point24.value.longitude?.['#text'] ?? home_point24.value.longitude
+      const hLat24 = home_point24.value.latitude?.['#text'] ?? home_point24.value.latitude
+      arrival_map24.value = "https://maps.nlsc.gov.tw/go/" + aLon24 + "/" + aLat24 + "/15/EMAP_B/DMAPS,ROAD";
+      home_map24.value = "https://maps.nlsc.gov.tw/go/" + hLon24 + "/" + hLat24 + "/15/EMAP_B/DMAPS,ROAD";
 
-      isLate24.value = arrival_point24.value.rank - home_point24.value.rank;
+      isLate24.value =
+        parseInt(arrival_point24.value.rank?.['#text'] ?? arrival_point24.value.rank) -
+        parseInt(home_point24.value.rank?.['#text'] ?? home_point24.value.rank);
       console.log(arrival_point24.value.rank  );
       console.log(  home_point24.value.rank);
     })
@@ -210,23 +217,30 @@ axios.get(API_BASE_URL + '?line60=true')
   .then(res => {
     console.log("Data 60 Loaded!")
     console.log("res.data.data 60", res.data)
-    data60.value = res.data.line.data
+    data60.value = res.data.line
 
-    if(data60.value.arrival >0 ){
-      arrival60.value = data60.value.arrival
-      arrival_point60.value = data60.value.points.point[arrival60.value-1];
+    const arrivalIdx60 = parseInt(data60.value.arrival?.['#text'] ?? data60.value.arrival)
+    if(arrivalIdx60 > 0){
+      arrival60.value = arrivalIdx60
+      arrival_point60.value = data60.value.points.point[arrivalIdx60-1];
     }
 
     data60.value.points.point.forEach(item => {
-      if (item.id === 797354) {
+      if (parseInt(item.id?.['#text'] ?? item.id) === 797354) {
         home_point60.value = item;
       }
     });
     data60placemap.value ="https://www.google.com/maps/place/"+data60.value.place
-    arrival_map60.value = "https://maps.nlsc.gov.tw/go/" + arrival_point60.value.longitude + "/" + arrival_point60.value.latitude + "/15/EMAP_B/DMAPS,ROAD";
-    home_map60.value = "https://maps.nlsc.gov.tw/go/" + home_point60.value.longitude + "/" + home_point60.value.latitude + "/15/EMAP_B/DMAPS,ROAD";
+    const aLon60 = arrival_point60.value.longitude?.['#text'] ?? arrival_point60.value.longitude
+    const aLat60 = arrival_point60.value.latitude?.['#text'] ?? arrival_point60.value.latitude
+    const hLon60 = home_point60.value.longitude?.['#text'] ?? home_point60.value.longitude
+    const hLat60 = home_point60.value.latitude?.['#text'] ?? home_point60.value.latitude
+    arrival_map60.value = "https://maps.nlsc.gov.tw/go/" + aLon60 + "/" + aLat60 + "/15/EMAP_B/DMAPS,ROAD";
+    home_map60.value = "https://maps.nlsc.gov.tw/go/" + hLon60 + "/" + hLat60 + "/15/EMAP_B/DMAPS,ROAD";
 
-    isLate60.value = arrival_point60.value.rank - home_point60.value.rank;
+    isLate60.value =
+      parseInt(arrival_point60.value.rank?.['#text'] ?? arrival_point60.value.rank) -
+      parseInt(home_point60.value.rank?.['#text'] ?? home_point60.value.rank);
     console.log(arrival_point60.value.rank );
     console.log(  home_point60.value.rank);
 
