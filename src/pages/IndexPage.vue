@@ -139,10 +139,11 @@ export default defineComponent({
 <script setup>
 import {onBeforeMount, ref} from "vue";
 import axios from "axios";
-//https://github.com/SmartCodeDavid/vue3-json-viewer/blob/master/readme_cn.md
+// 參考 https://github.com/SmartCodeDavid/vue3-json-viewer/blob/master/readme_cn.md
 import { JsonViewer } from "vue3-json-source-viewer"
 import "vue3-json-source-viewer/dist/index.css"
 
+const API_BASE_URL = 'https://your-cloudflare-worker.example.com';
 const data24 = ref({})
 const arrival24 = ref({})
 const arrival_point24 = ref({})
@@ -177,7 +178,7 @@ function refresh(done){
 }
  function loadData() {
    console.log("loading Data!")
-  axios.get('../jsp/getdata.jsp?line24=true')
+  axios.get(API_BASE_URL + '?line24=true')
     .then(res => {
       console.log("Data 24 Loaded!")
       console.log("res.data.data 24", res.data)
@@ -206,7 +207,7 @@ function refresh(done){
 
 
 
-axios.get('../jsp/getdata.jsp?line60=true')
+axios.get(API_BASE_URL + '?line60=true')
   .then(res => {
     console.log("Data 60 Loaded!")
     console.log("res.data.data 60", res.data)
