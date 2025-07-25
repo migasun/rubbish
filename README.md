@@ -13,13 +13,13 @@ npm install
 
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
 ```bash
-quasar dev
+npx quasar dev
 ```
 
 
 ### Build the app for production
 ```bash
-quasar build
+npx quasar build
 ```
 
 ### Deploying to GitHub Pages
@@ -40,7 +40,7 @@ cd cloudflare/steep-smoke-0e4c
 wrangler dev --remote
 # The dev server runs on http://localhost:8787
 # Point the front-end to it by running Quasar with
-# `VITE_API_BASE_URL=http://localhost:8787 quasar dev`
+# `VITE_API_BASE_URL=http://localhost:8787 npx quasar dev`
 # Deploy to Cloudflare
 wrangler deploy
 ```
