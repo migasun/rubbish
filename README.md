@@ -13,13 +13,13 @@ npm install
 
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
 ```bash
-quasar dev
+npx quasar dev
 ```
 
 
 ### Build the app for production
 ```bash
-quasar build
+npx quasar build
 ```
 
 ### Deploying to GitHub Pages
@@ -27,6 +27,10 @@ The build output will be created in `dist/spa`. Commit this directory to the
 `gh-pages` branch or configure GitHub Pages to serve it from the `docs` folder.
 An automated workflow in `.github/workflows/deploy.yml` does this
 automatically for pushes to `main`.
+
+After the workflow completes, visit your repository's **Settings → Pages**
+section to confirm the deployment URL. GitHub will typically serve the site at
+`https://<USERNAME>.github.io/<REPO>/`.
 
 ### Cloudflare Worker Proxy
 The worker source lives in `cloudflare/steep-smoke-0e4c`. Change into this
@@ -40,7 +44,7 @@ cd cloudflare/steep-smoke-0e4c
 wrangler dev --remote
 # The dev server runs on http://localhost:8787
 # Point the front-end to it by running Quasar with
-# `VITE_API_BASE_URL=http://localhost:8787 quasar dev`
+# `VITE_API_BASE_URL=http://localhost:8787 npx quasar dev`
 # Deploy to Cloudflare
 wrangler deploy
 ```

@@ -11,17 +11,20 @@ npm install
 
 ### 在開發模式啟動應用程式（含熱重新載入與錯誤回報）
 ```bash
-quasar dev
+npx quasar dev
 ```
 
 ### 建構正式版
 ```bash
-quasar build
+npx quasar build
 ```
 
 ### 部署到 GitHub Pages
 建置輸出的檔案會出現在 `dist/spa`。將此目錄提交到 `gh-pages` 分支，或是設定 GitHub Pages 使用 `docs` 資料夾作為根目錄。
 位於 `.github/workflows/deploy.yml` 的自動化流程會在推送到 `main` 分支時自動完成此部署。
+
+部署完成後，可在倉庫的 **Settings → Pages** 頁面查看網址。通常會是
+`https://<USERNAME>.github.io/<REPO>/`。
 
 ### Cloudflare Worker Proxy
 Worker 原始碼位於 `cloudflare/steep-smoke-0e4c`。切換到該目錄後執行下列指令：
@@ -33,7 +36,7 @@ cd cloudflare/steep-smoke-0e4c
 wrangler dev --remote
 # 開發伺服器預設埠為 http://localhost:8787
 # 在前端執行 Quasar 時使用下列指令連向它
-# `VITE_API_BASE_URL=http://localhost:8787 quasar dev`
+# `VITE_API_BASE_URL=http://localhost:8787 npx quasar dev`
 # 部署至 Cloudflare
 wrangler deploy
 ```
