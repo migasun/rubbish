@@ -17,8 +17,8 @@
         <q-separator></q-separator>
         <q-card-section>
           中午<br>
-          排班 <q-badge color="secondary text-h5" > {{home_point24.schedule}}</q-badge><br>
-          預計 <q-badge color="secondary text-h5" >{{home_point24.arrival}}到達</q-badge><br>
+          排班 <q-badge color="secondary text-h5" > {{ unwrap(home_point24.schedule) }}</q-badge><br>
+          預計 <q-badge color="secondary text-h5" >{{ unwrap(home_point24.arrival) }}到達</q-badge><br>
 
           <span v-if="isLate24 > 0 ">站點 <q-badge color="secondary text-h5" >離開{{isLate24}}站</q-badge></span>
           <span v-else-if="isLate24 === 0 ">站點  <q-badge color="secondary text-h5" >到了</q-badge></span>
@@ -27,7 +27,7 @@
               站點 <q-badge color="primary text-h5" >還有{{-isLate24}}站</q-badge>
               <q-linear-progress size="50px" :value="-isLate24" color="accent" class="q-mt-sm">
                 <div class="absolute-full flex flex-center">
-                  <q-badge color="white" text-color="accent" :label="arrival_point24.name" />
+                  <q-badge color="white" text-color="accent" :label="unwrap(arrival_point24.name)" />
                 </div>
               </q-linear-progress>
             </template>
@@ -35,16 +35,16 @@
           <br>
           <br>
 
-          {{home_point24.name}}
-          <br><a :href="arrival_map24" target="_blank">到達位置地圖 {{arrival_point24.longitude}}/{{arrival_point24.latitude}}</a><br>
-          GPS定位:<a :href="data24placemap" target="_blank">{{data24.place}}</a><br>
+          {{ unwrap(home_point24.name) }}
+          <br><a :href="arrival_map24" target="_blank">到達位置地圖 {{ unwrap(arrival_point24.longitude) }}/{{ unwrap(arrival_point24.latitude) }}</a><br>
+          GPS定位:<a :href="data24placemap" target="_blank">{{ unwrap(data24.place) }}</a><br>
           <br>
         </q-card-section>
         <q-separator></q-separator>
         <q-card-section>
           晚上<br>
-          排班 <q-badge color="secondary text-h5" > {{home_point60.schedule}}</q-badge><br>
-          預計 <q-badge color="secondary text-h5" >{{home_point60.arrival}}到達</q-badge><br>
+          排班 <q-badge color="secondary text-h5" > {{ unwrap(home_point60.schedule) }}</q-badge><br>
+          預計 <q-badge color="secondary text-h5" >{{ unwrap(home_point60.arrival) }}到達</q-badge><br>
           <span v-if="isLate60 > 0 ">站點 <q-badge color="secondary text-h5" >離開{{isLate60}}站</q-badge></span>
           <span v-else-if="isLate60 === 0 ">站點  <q-badge color="secondary text-h5" >到了</q-badge></span>
           <span v-else>
@@ -52,7 +52,7 @@
               站點 <q-badge color="primary text-h5" >還有{{-isLate60}}站</q-badge>
               <q-linear-progress size="50px" :value="-isLate60" color="accent" class="q-mt-sm">
                 <div class="absolute-full flex flex-center">
-                  <q-badge color="white" text-color="accent" :label="arrival_point60.name" />
+                  <q-badge color="white" text-color="accent" :label="unwrap(arrival_point60.name)" />
                 </div>
               </q-linear-progress>
             </template>
@@ -60,7 +60,7 @@
 
         </q-card-section>
         <q-card-section>
-          GPS定位:<a :href="data60placemap" target="_blank">{{data60.place}}</a>
+          GPS定位:<a :href="data60placemap" target="_blank">{{ unwrap(data60.place) }}</a>
 
         </q-card-section>
 
@@ -74,14 +74,14 @@
             <tr>
               <td><h5>晚上</h5></td>
               <td>
-                <h6>{{arrival_point60.name}}</h6>
-                預計{{arrival_point60.schedule}}
-                <a :href="arrival_map60" target="_blank">地圖 {{arrival_point60.longitude}}/{{arrival_point60.latitude}}</a>
+                <h6>{{ unwrap(arrival_point60.name) }}</h6>
+                預計{{ unwrap(arrival_point60.schedule) }}
+                <a :href="arrival_map60" target="_blank">地圖 {{ unwrap(arrival_point60.longitude) }}/{{ unwrap(arrival_point60.latitude) }}</a>
               </td>
               <td>
-                <h6>({{home_point60.arrival}})
-                  <br>{{home_point60.name}}</h6>
-                預計{{home_point60.schedule}}
+                <h6>({{ unwrap(home_point60.arrival) }})
+                  <br>{{ unwrap(home_point60.name) }}</h6>
+                預計{{ unwrap(home_point60.schedule) }}
               </td>
             </tr>
             </tbody>
@@ -143,6 +143,8 @@ import { API_BASE_URL } from "src/boot/axios";
 // 參考 https://github.com/SmartCodeDavid/vue3-json-viewer/blob/master/readme_cn.md
 import { JsonViewer } from "vue3-json-source-viewer"
 import "vue3-json-source-viewer/dist/index.css"
+
+const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
 const data24 = ref({})
 const arrival24 = ref({})
 const arrival_point24 = ref({})
