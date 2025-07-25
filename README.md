@@ -5,10 +5,14 @@
 [繁體中文](README.zh-TW.md)
 
 ## Install the dependencies
+Run `npm install` to install the project's dependencies. This repository ships
+with a `package-lock.json`, so npm is the default package manager. You may use
+Yarn if you prefer.
+
 ```bash
-yarn
-# or
 npm install
+# or
+yarn
 ```
 
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
@@ -23,8 +27,7 @@ npx quasar build
 ```
 
 ### Deploying to GitHub Pages
-The build output will be created in `dist/spa`. Commit this directory to the
-`gh-pages` branch or configure GitHub Pages to serve it from the `docs` folder.
+The build output will be created in `dist/spa`. Commit this directory to the `gh-pages` branch or configure GitHub Pages to serve it from the `docs` folder.
 An automated workflow in `.github/workflows/deploy.yml` does this
 automatically for pushes to `main`.
 
@@ -33,8 +36,7 @@ section to confirm the deployment URL. GitHub will typically serve the site at
 `https://<USERNAME>.github.io/<REPO>/`.
 
 ### Cloudflare Worker Proxy
-The worker source lives in `cloudflare/steep-smoke-0e4c`. Change into this
-directory before running any Wrangler commands.
+The worker source lives in `cloudflare/steep-smoke-0e4c`. Change into this directory before running any Wrangler commands.
 
 ```bash
 cd cloudflare/steep-smoke-0e4c
@@ -49,10 +51,13 @@ wrangler dev --remote
 wrangler deploy
 ```
 
-After deploying, note the URL Wrangler prints. Copy `.env.example` to `.env` and
-set `VITE_API_BASE_URL` to that URL so the front-end can retrieve garbage truck
-data through the worker.
+After deploying, note the URL Wrangler prints. Copy `.env.example` to `.env` and set `VITE_API_BASE_URL` to that URL so the front-end can retrieve garbage truck data through the worker.
 
 
 ### Customize the configuration
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
