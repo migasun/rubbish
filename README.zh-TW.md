@@ -5,10 +5,13 @@
 [English](README.md)
 
 ## 安裝相依套件
+本專案提供 `package-lock.json`，建議以 npm 為預設套件管理工具。
+執行 `npm install` 安裝相依套件，或依需要改用 Yarn。
+
 ```bash
-yarn
-# 或者
 npm install
+# 或是
+yarn
 ```
 
 ### 在開發模式啟動應用程式（含熱重新載入與錯誤回報）

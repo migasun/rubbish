@@ -5,10 +5,14 @@
 [繁體中文](README.zh-TW.md)
 
 ## Install the dependencies
+Run `npm install` to install the project's dependencies. This repository ships
+with a `package-lock.json`, so npm is the default package manager. You may use
+Yarn if you prefer.
+
 ```bash
-yarn
-# or
 npm install
+# or
+yarn
 ```
 
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
