@@ -45,17 +45,17 @@ cd cloudflare/steep-smoke-0e4c
 # worker runs in an environment that includes the Web APIs (DOMParser etc.)
 wrangler dev --remote
 # The dev server runs on http://localhost:8787
-# Point the front-end to it by running Quasar with
-# `VITE_API_BASE_URL=http://localhost:8787 npx quasar dev`
+# The front-end automatically connects to this URL when running `quasar dev`
 # Deploy to Cloudflare
 wrangler deploy
 ```
 
 This project is preconfigured to use the hosted worker at
-`https://steep-smoke-0e4c.vega-0b1.workers.dev`. If you deploy your own
-worker, copy `.env.example` to `.env` and update `VITE_API_BASE_URL` to
-point to the new URL so the front-end can retrieve garbage truck data
-through it.
+`https://steep-smoke-0e4c.vega-0b1.workers.dev`. When running `quasar dev`
+the front-end automatically connects to `http://localhost:8787`. If you
+deploy your own worker, copy `.env.example` to `.env` and update
+`VITE_API_BASE_URL` to point to the new URL so the front-end can retrieve
+garbage truck data through it.
 
 
 ### Customize the configuration

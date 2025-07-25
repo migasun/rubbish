@@ -46,14 +46,14 @@ cd cloudflare/steep-smoke-0e4c
 # 在支援 Web API（如 DOMParser）的環境中執行
 wrangler dev --remote
 # 開發伺服器預設埠為 http://localhost:8787
-# 在前端執行 Quasar 時使用下列指令連向它
-# `VITE_API_BASE_URL=http://localhost:8787 npx quasar dev`
+# 前端在執行 `quasar dev` 時會自動連線到此 URL
 # 部署至 Cloudflare
 wrangler deploy
 ```
 
 本專案預設會使用 Cloudflare 上的 worker
-`https://steep-smoke-0e4c.vega-0b1.workers.dev`。若自行部署 worker，請複製
+`https://steep-smoke-0e4c.vega-0b1.workers.dev`。執行 `quasar dev` 時，
+前端會自動連線到 `http://localhost:8787`。若自行部署 worker，請複製
 `.env.example` 為 `.env`，並將 `VITE_API_BASE_URL` 改為新的網址，讓前端能透過
 新的 worker 取得垃圾車資料。
 
