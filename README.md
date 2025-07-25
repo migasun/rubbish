@@ -23,14 +23,12 @@ quasar build
 ```
 
 ### Deploying to GitHub Pages
-The build output will be created in `dist/spa`. Commit this directory to the
-`gh-pages` branch or configure GitHub Pages to serve it from the `docs` folder.
+The build output will be created in `dist/spa`. Commit this directory to the `gh-pages` branch or configure GitHub Pages to serve it from the `docs` folder.
 An automated workflow in `.github/workflows/deploy.yml` does this
 automatically for pushes to `main`.
 
 ### Cloudflare Worker Proxy
-The worker source lives in `cloudflare/steep-smoke-0e4c`. Change into this
-directory before running any Wrangler commands.
+The worker source lives in `cloudflare/steep-smoke-0e4c`. Change into this directory before running any Wrangler commands.
 
 ```bash
 cd cloudflare/steep-smoke-0e4c
@@ -45,9 +43,7 @@ wrangler dev --remote
 wrangler deploy
 ```
 
-After deploying, note the URL Wrangler prints. Copy `.env.example` to `.env` and
-set `VITE_API_BASE_URL` to that URL so the front-end can retrieve garbage truck
-data through the worker.
+After deploying, note the URL Wrangler prints. Copy `.env.example` to `.env` and set `VITE_API_BASE_URL` to that URL so the front-end can retrieve garbage truck data through the worker.
 
 
 ### Customize the configuration
