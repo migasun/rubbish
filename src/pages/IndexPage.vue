@@ -137,119 +137,85 @@ export default defineComponent({
 
 </script>
 <script setup>
-import {onBeforeMount, ref} from "vue";
-import axios from "axios";
-import { API_BASE_URL } from "src/boot/axios";
-// 參考 https://github.com/SmartCodeDavid/vue3-json-viewer/blob/master/readme_cn.md
-import { JsonViewer } from "vue3-json-source-viewer"
-import "vue3-json-source-viewer/dist/index.css"
+import { onBeforeMount, onUnmounted, ref } from 'vue'
+import axios from 'axios'
+import { API_BASE_URL } from 'src/boot/axios'
+import { JsonViewer } from 'vue3-json-source-viewer'
+import 'vue3-json-source-viewer/dist/index.css'
 
 const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
+
 const data24 = ref({})
-const arrival24 = ref({})
 const arrival_point24 = ref({})
 const home_point24 = ref({})
-const arrival_map24 = ref("")
-const home_map24 = ref("")
-const isLate24 = ref(null);
-const data24placemap = ref({});
+const arrival_map24 = ref('')
+const isLate24 = ref(null)
+const data24placemap = ref({})
+
 const data60 = ref({})
-const arrival60 = ref({})
 const arrival_point60 = ref({})
 const home_point60 = ref({})
-const arrival_map60 = ref("")
-const home_map60 = ref("")
-const isLate60 = ref(null);
-const data60placemap = ref({});
-const inService = ref("有垃圾車");
-onBeforeMount(()=>{
-  console.log("onBeforeMount");
+const arrival_map60 = ref('')
+const isLate60 = ref(null)
+const data60placemap = ref({})
+
+const inService = ref('有垃圾車')
+
+let intervalId
+
+onBeforeMount(() => {
   loadData()
-  var timeoutID = window.setInterval(( () => {
-    loadData()
-  } ), 30000);
+  intervalId = window.setInterval(loadData, 30000)
 })
 
-function refresh(done){
-  console.log('refresh')
-  loadData()
-  console.log('refresh done1')
-  done()
-  console.log('refresh done2')
+onUnmounted(() => {
+  clearInterval(intervalId)
+})
+
+function refresh(done) {
+  loadData().finally(done)
 }
- function loadData() {
-   console.log("loading Data!")
-  axios.get(API_BASE_URL + '?line24=true')
-    .then(res => {
-      console.log("Data 24 Loaded!")
-      console.log("res.data.data 24", res.data)
-      data24.value = res.data.line
-      const arrivalIdx24 = parseInt(data24.value.arrival?.['#text'] ?? data24.value.arrival)
-      if(arrivalIdx24 > 0){
-        arrival24.value = arrivalIdx24
-        arrival_point24.value = data24.value.points.point[arrivalIdx24-1];
-      }
-      data24.value.points.point.forEach(item => {
-        if (parseInt(item.id?.['#text'] ?? item.id) === 894299) {
-          home_point24.value = item;
-        }
-      });
 
-      inService.value = (home_point24.value.schedule === '本日無清運') ?  "本日無清運" : null;
-      inService.value = (home_point24.value.schedule === '停止收運') ?  "停止收運" : inService.value;
+async function fetchLine(query, homeId) {
+  const { data } = await axios.get(`${API_BASE_URL}?${query}=true`)
+  const line = data.line
+  const arrivalIdx = parseInt(line.arrival?.['#text'] ?? line.arrival)
+  const arrivalPoint = arrivalIdx > 0 ? line.points.point[arrivalIdx - 1] : {}
+  const homePoint = line.points.point.find(
+    (item) => parseInt(item.id?.['#text'] ?? item.id) === homeId
+  ) || {}
+  return { line, arrivalPoint, homePoint }
+}
 
-      data24placemap.value = "https://www.google.com/maps/place/"+data24.value.place
-      const aLon24 = arrival_point24.value.longitude?.['#text'] ?? arrival_point24.value.longitude
-      const aLat24 = arrival_point24.value.latitude?.['#text'] ?? arrival_point24.value.latitude
-      const hLon24 = home_point24.value.longitude?.['#text'] ?? home_point24.value.longitude
-      const hLat24 = home_point24.value.latitude?.['#text'] ?? home_point24.value.latitude
-      arrival_map24.value = "https://maps.nlsc.gov.tw/go/" + aLon24 + "/" + aLat24 + "/15/EMAP_B/DMAPS,ROAD";
-      home_map24.value = "https://maps.nlsc.gov.tw/go/" + hLon24 + "/" + hLat24 + "/15/EMAP_B/DMAPS,ROAD";
+async function loadData() {
+  try {
+    const { line: line24, arrivalPoint: arr24, homePoint: home24 } =
+      await fetchLine('line24', 894299)
+    data24.value = line24
+    arrival_point24.value = arr24
+    home_point24.value = home24
+    data24placemap.value = `https://www.google.com/maps/place/${unwrap(line24.place)}`
+    arrival_map24.value = `https://maps.nlsc.gov.tw/go/${unwrap(arr24.longitude)}/${unwrap(arr24.latitude)}/15/EMAP_B/DMAPS,ROAD`
+    isLate24.value = parseInt(unwrap(arr24.rank)) - parseInt(unwrap(home24.rank))
+    inService.value =
+      home_point24.value.schedule === '本日無清運'
+        ? '本日無清運'
+        : home_point24.value.schedule === '停止收運'
+          ? '停止收運'
+          : null
 
-      isLate24.value =
-        parseInt(arrival_point24.value.rank?.['#text'] ?? arrival_point24.value.rank) -
-        parseInt(home_point24.value.rank?.['#text'] ?? home_point24.value.rank);
-      console.log(arrival_point24.value.rank  );
-      console.log(  home_point24.value.rank);
-    })
-
-
-
-axios.get(API_BASE_URL + '?line60=true')
-  .then(res => {
-    console.log("Data 60 Loaded!")
-    console.log("res.data.data 60", res.data)
-    data60.value = res.data.line
-
-    const arrivalIdx60 = parseInt(data60.value.arrival?.['#text'] ?? data60.value.arrival)
-    if(arrivalIdx60 > 0){
-      arrival60.value = arrivalIdx60
-      arrival_point60.value = data60.value.points.point[arrivalIdx60-1];
-    }
-
-    data60.value.points.point.forEach(item => {
-      if (parseInt(item.id?.['#text'] ?? item.id) === 995714) {
-        home_point60.value = item;
-      }
-    });
-    data60placemap.value ="https://www.google.com/maps/place/"+data60.value.place
-    const aLon60 = arrival_point60.value.longitude?.['#text'] ?? arrival_point60.value.longitude
-    const aLat60 = arrival_point60.value.latitude?.['#text'] ?? arrival_point60.value.latitude
-    const hLon60 = home_point60.value.longitude?.['#text'] ?? home_point60.value.longitude
-    const hLat60 = home_point60.value.latitude?.['#text'] ?? home_point60.value.latitude
-    arrival_map60.value = "https://maps.nlsc.gov.tw/go/" + aLon60 + "/" + aLat60 + "/15/EMAP_B/DMAPS,ROAD";
-    home_map60.value = "https://maps.nlsc.gov.tw/go/" + hLon60 + "/" + hLat60 + "/15/EMAP_B/DMAPS,ROAD";
-
-    isLate60.value =
-      parseInt(arrival_point60.value.rank?.['#text'] ?? arrival_point60.value.rank) -
-      parseInt(home_point60.value.rank?.['#text'] ?? home_point60.value.rank);
-    console.log(arrival_point60.value.rank );
-    console.log(  home_point60.value.rank);
-
-  })
- }
-
-const bar = ref(null)
+    const { line: line60, arrivalPoint: arr60, homePoint: home60 } =
+      await fetchLine('line60', 995714)
+    data60.value = line60
+    arrival_point60.value = arr60
+    home_point60.value = home60
+    data60placemap.value = `https://www.google.com/maps/place/${unwrap(line60.place)}`
+    arrival_map60.value = `https://maps.nlsc.gov.tw/go/${unwrap(arr60.longitude)}/${unwrap(arr60.latitude)}/15/EMAP_B/DMAPS,ROAD`
+    isLate60.value = parseInt(unwrap(arr60.rank)) - parseInt(unwrap(home60.rank))
+  } catch (err) {
+    console.error('Failed to load data', err)
+  }
+}
 </script>
 <style>
 
