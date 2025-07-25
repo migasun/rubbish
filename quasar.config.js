@@ -59,8 +59,8 @@ module.exports = configure(function (/* ctx */) {
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
-      publicPath: '/test/rubbish/spa',
-      distDir : 'web/test/rubbish/spa'
+      publicPath: process.env.NODE_ENV === 'production' ? '/rubbish/' : '/',
+      distDir : 'dist/spa'
       // publicPath: '/',
       // analyze: true,
       // env: {},
@@ -83,16 +83,7 @@ module.exports = configure(function (/* ctx */) {
     devServer: {
       // https: true
       open: true, // opens browser window automatically
-      proxy: {
-        // proxy all requests starting with /api to jsonplaceholder
-        '/test/rubbish/jsp': {
-          target: 'http://127.0.0.1:8080',
-          changeOrigin: true,
-          pathRewrite: {
-            '^/test/rubbish/jsp': ''
-          }
-        }
-      }
+      proxy: {}
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
