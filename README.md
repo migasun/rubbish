@@ -23,6 +23,8 @@ quasar build
 ### Deploying to GitHub Pages
 The build output will be created in `dist/spa`. Commit this directory to the
 `gh-pages` branch or configure GitHub Pages to serve it from the `docs` folder.
+An automated workflow in `.github/workflows/deploy.yml` does this
+automatically for pushes to `main`.
 
 ### Cloudflare Worker Proxy
 The worker source lives in `cloudflare/steep-smoke-0e4c`. Change into this
