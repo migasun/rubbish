@@ -26,8 +26,8 @@ The build output will be created in `dist/spa`. Commit this directory to the
 
 ### Cloudflare Worker Proxy
 Deploy `cloudflare/worker.js` on Cloudflare Workers and note the URL it
-provides. Update `API_BASE_URL` inside `src/pages/IndexPage.vue` with that URL
-so the front-end can retrieve garbage truck data through the worker.
+provides. Update `API_BASE_URL` inside `src/boot/axios.js` with that URL so the
+front-end can retrieve garbage truck data through the worker.
 
 ### Customize the configuration
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).

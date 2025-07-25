@@ -139,11 +139,11 @@ export default defineComponent({
 <script setup>
 import {onBeforeMount, ref} from "vue";
 import axios from "axios";
+import { API_BASE_URL } from "src/boot/axios";
 // 參考 https://github.com/SmartCodeDavid/vue3-json-viewer/blob/master/readme_cn.md
 import { JsonViewer } from "vue3-json-source-viewer"
 import "vue3-json-source-viewer/dist/index.css"
 
-const API_BASE_URL = 'https://your-cloudflare-worker.example.com';
 const data24 = ref({})
 const arrival24 = ref({})
 const arrival_point24 = ref({})
