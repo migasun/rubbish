@@ -27,6 +27,9 @@ npx quasar build
 ### 部署到 GitHub Pages
 建置輸出的檔案會出現在 `dist/spa`。將此目錄提交到 `gh-pages` 分支，或是設定 GitHub Pages 使用 `docs` 資料夾作為根目錄。 位於 `.github/workflows/deploy.yml` 的自動化流程會在推送到 `main` 分支時自動完成此部署。
 
+部署完成後，可在倉庫的 **Settings → Pages** 頁面查看網址。通常會是
+`https://<USERNAME>.github.io/<REPO>/`。
+
 ### Cloudflare Worker Proxy
 Worker 原始碼位於 `cloudflare/steep-smoke-0e4c`。切換到該目錄後執行下列指令。
 更多資訊請見 [Cloudflare 部署說明](cloudflare/readme.zh-TW.md)。

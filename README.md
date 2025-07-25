@@ -31,6 +31,10 @@ The build output will be created in `dist/spa`. Commit this directory to the `gh
 An automated workflow in `.github/workflows/deploy.yml` does this
 automatically for pushes to `main`.
 
+After the workflow completes, visit your repository's **Settings → Pages**
+section to confirm the deployment URL. GitHub will typically serve the site at
+`https://<USERNAME>.github.io/<REPO>/`.
+
 ### Cloudflare Worker Proxy
 The worker source lives in `cloudflare/steep-smoke-0e4c`. Change into this directory before running any Wrangler commands.
 
