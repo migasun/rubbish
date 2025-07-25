@@ -5,6 +5,16 @@ export default {
 };
 
 async function handleRequest(request: Request): Promise<Response> {
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,HEAD,POST,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    });
+  }
   const { searchParams } = new URL(request.url);
   const isLine24 = searchParams.has('line24');
   const isLine60 = searchParams.has('line60');
@@ -16,20 +26,30 @@ async function handleRequest(request: Request): Promise<Response> {
     url = 'https://crd-rubbish.epd.ntpc.gov.tw/dispProject/api/line-status.ashx?lineid=235060';
   }
   if (!url) {
-    return new Response('Missing query', { status: 400 });
+    return new Response('Missing query', {
+      status: 400,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+    });
   }
 
-  const resp = await fetch(url);
-  const xml = await resp.text();
-  const doc = new DOMParser().parseFromString(xml, 'application/xml');
-  const json = xmlToJson(doc);
-  const body = JSON.stringify({ line: json });
-  return new Response(body, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-    },
-  });
+  try {
+    const resp = await fetch(url);
+    const xml = await resp.text();
+    const doc = new DOMParser().parseFromString(xml, 'application/xml');
+    const json = xmlToJson(doc);
+    const body = JSON.stringify({ line: json });
+    return new Response(body, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  } catch (err: any) {
+    return new Response('Failed to fetch data', {
+      status: 500,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+    });
+  }
 }
 
 function xmlToJson(node: Node): any {

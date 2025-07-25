@@ -31,7 +31,12 @@ directory before running any Wrangler commands.
 ```bash
 cd cloudflare/steep-smoke-0e4c
 # Start a local dev server
-wrangler dev
+# wrangler provides a local dev server. Use the --remote flag so the
+# worker runs in an environment that includes the Web APIs (DOMParser etc.)
+wrangler dev --remote
+# The dev server runs on http://localhost:8787
+# Point the front-end to it by running Quasar with
+# `VITE_API_BASE_URL=http://localhost:8787 quasar dev`
 # Deploy to Cloudflare
 wrangler deploy
 ```
