@@ -33,6 +33,9 @@ npx quasar build
 部署完成後，可在倉庫的 **Settings → Pages** 頁面查看網址。通常會是
 `https://<USERNAME>.github.io/<REPO>/`。
 
+部署完成後，可在倉庫的 **Settings → Pages** 頁面查看網址。通常會是
+`https://<USERNAME>.github.io/<REPO>/`。
+
 ### Cloudflare Worker Proxy
 Worker 原始碼位於 `cloudflare/steep-smoke-0e4c`。切換到該目錄後執行下列指令。
 更多資訊請見 [Cloudflare 部署說明](cloudflare/readme.zh-TW.md)。
