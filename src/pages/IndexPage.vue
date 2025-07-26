@@ -10,7 +10,8 @@
 
 
     <q-pull-to-refresh @refresh="refresh">
-      <q-card >
+      <div class="row q-col-gutter-md">
+      <q-card class="col-12 col-md-6">
         <q-card-section>
         今天 <q-badge color="secondary text-h5" >{{inService}} </q-badge>
         </q-card-section>
@@ -36,8 +37,11 @@
           <br>
 
           {{ unwrap(home_point24.name) }}
-          <br><a :href="arrival_map24" target="_blank">到達位置地圖 {{ unwrap(arrival_point24.longitude) }}/{{ unwrap(arrival_point24.latitude) }}</a><br>
-          GPS定位:<a :href="data24placemap" target="_blank">{{ unwrap(data24.place) }}</a><br>
+          <br>
+          <a v-if="arrival_map24" :href="arrival_map24" target="_blank">到達位置地圖 {{ unwrap(arrival_point24.longitude) }}/{{ unwrap(arrival_point24.latitude) }}</a><br>
+          <span v-if="data24placemap">
+            GPS定位:<a :href="data24placemap" target="_blank">{{ unwrap(data24.place) }}</a>
+          </span><br>
           <br>
         </q-card-section>
         <q-separator></q-separator>
@@ -60,12 +64,13 @@
 
         </q-card-section>
         <q-card-section>
-          GPS定位:<a :href="data60placemap" target="_blank">{{ unwrap(data60.place) }}</a>
-
+          <span v-if="data60placemap">
+            GPS定位:<a :href="data60placemap" target="_blank">{{ unwrap(data60.place) }}</a>
+          </span>
         </q-card-section>
 
       </q-card>
-      <q-card>
+      <q-card class="col-12 col-md-6">
         <q-card-section>
           <table>
 
@@ -76,7 +81,7 @@
               <td>
                 <h6>{{ unwrap(arrival_point60.name) }}</h6>
                 預計{{ unwrap(arrival_point60.schedule) }}
-                <a :href="arrival_map60" target="_blank">地圖 {{ unwrap(arrival_point60.longitude) }}/{{ unwrap(arrival_point60.latitude) }}</a>
+                <a v-if="arrival_map60" :href="arrival_map60" target="_blank">地圖 {{ unwrap(arrival_point60.longitude) }}/{{ unwrap(arrival_point60.latitude) }}</a>
               </td>
               <td>
                 <h6>({{ unwrap(home_point60.arrival) }})
@@ -91,7 +96,7 @@
         </q-card-section>
       </q-card>
 
-      <q-card>
+      <q-card class="col-12 col-md-6">
         <q-card-section>
           data24
           <JsonViewer :value="data24" copyable sort boxed show-array-index="true"/>
@@ -115,7 +120,7 @@
 
       </q-card>
 
-      <q-card>
+      <q-card class="col-12 col-md-6">
       <template v-if="data60.points">
         <q-card-section v-for="point in data60.points.point ">
           {{ point }}
@@ -123,7 +128,27 @@
       </template>
 
       </q-card>
+      </div>
     </q-pull-to-refresh>
+
+    <div class="row q-col-gutter-md q-mt-md">
+      <q-card v-for="(w, idx) in extraWatchers" :key="idx" class="col-12 col-md-6">
+        <q-card-section>
+          監看 {{ watchersStore.watchers.slice(2)[idx].lineParam }}<br>
+          排班 <q-badge color="secondary">{{ unwrap(w.home_point.schedule) }}</q-badge><br>
+          預計 <q-badge color="secondary">{{ unwrap(w.home_point.arrival) }}到達</q-badge><br>
+          <span v-if="w.isLate > 0">站點 <q-badge color="secondary">離開{{ w.isLate }}站</q-badge></span>
+          <span v-else-if="w.isLate === 0">站點 <q-badge color="secondary">到了</q-badge></span>
+          <span v-else-if="w.isLate"><q-badge color="primary">還有{{ -w.isLate }}站</q-badge></span>
+          <br><br>
+          {{ unwrap(w.home_point.name) }}<br>
+          <a v-if="w.arrival_map" :href="w.arrival_map" target="_blank">到達位置地圖 {{ unwrap(w.arrival_point.longitude) }}/{{ unwrap(w.arrival_point.latitude) }}</a><br>
+          <span v-if="w.dataPlacemap">
+            GPS定位:<a :href="w.dataPlacemap" target="_blank">{{ unwrap(w.data.place) }}</a>
+          </span>
+        </q-card-section>
+      </q-card>
+    </div>
 
   </q-page>
 </template>
@@ -137,9 +162,10 @@ export default defineComponent({
 
 </script>
 <script setup>
-import {onBeforeMount, ref} from "vue";
+import {onBeforeMount, ref, watch} from "vue";
 import axios from "axios";
 import { API_BASE_URL } from "src/boot/axios";
+import { useWatchersStore } from "src/stores/watchers";
 // 參考 https://github.com/SmartCodeDavid/vue3-json-viewer/blob/master/readme_cn.md
 import { JsonViewer } from "vue3-json-source-viewer"
 import "vue3-json-source-viewer/dist/index.css"
@@ -162,6 +188,26 @@ const home_map60 = ref("")
 const isLate60 = ref(null);
 const data60placemap = ref({});
 const inService = ref("有垃圾車");
+const watchersStore = useWatchersStore();
+const extraWatchers = ref([]);
+
+watch(
+  () => watchersStore.watchers.length,
+  () => {
+    extraWatchers.value = watchersStore.watchers.slice(2).map(() => ({
+      data: ref({}),
+      arrival: ref({}),
+      arrival_point: ref({}),
+      home_point: ref({}),
+      arrival_map: ref(""),
+      home_map: ref(""),
+      isLate: ref(null),
+      dataPlacemap: ref("")
+    }));
+    loadData()
+  },
+  { immediate: true }
+);
 onBeforeMount(() => {
   loadData()
   setInterval(loadData, 30000)
@@ -204,13 +250,17 @@ async function loadLineData({
     inService.value = (home_point.value.schedule === '停止收運') ? '停止收運' : inService.value
   }
 
-  dataPlacemap.value = `https://www.google.com/maps/place/${data.value.place}`
+  dataPlacemap.value = data.value.place
+    ? `https://www.google.com/maps/place/${data.value.place}`
+    : ''
   const aLon = arrival_point.value.longitude?.['#text'] ?? arrival_point.value.longitude
   const aLat = arrival_point.value.latitude?.['#text'] ?? arrival_point.value.latitude
   const hLon = home_point.value.longitude?.['#text'] ?? home_point.value.longitude
   const hLat = home_point.value.latitude?.['#text'] ?? home_point.value.latitude
-  arrival_map.value = `https://maps.nlsc.gov.tw/go/${aLon}/${aLat}/15/EMAP_B/DMAPS,ROAD`
-  home_map.value = `https://maps.nlsc.gov.tw/go/${hLon}/${hLat}/15/EMAP_B/DMAPS,ROAD`
+  arrival_map.value = aLon && aLat ?
+    `https://maps.nlsc.gov.tw/go/${aLon}/${aLat}/15/EMAP_B/DMAPS,ROAD` : ''
+  home_map.value = hLon && hLat ?
+    `https://maps.nlsc.gov.tw/go/${hLon}/${hLat}/15/EMAP_B/DMAPS,ROAD` : ''
 
   isLate.value =
     parseInt(arrival_point.value.rank?.['#text'] ?? arrival_point.value.rank) -
@@ -218,7 +268,7 @@ async function loadLineData({
 }
 
 async function loadData() {
-  await Promise.all([
+  const tasks = [
     loadLineData({
       lineParam: 'line24',
       homeId: 894299,
@@ -245,7 +295,26 @@ async function loadData() {
       dataPlacemap: data60placemap,
       updateService: false
     })
-  ])
+  ]
+  extraWatchers.value.forEach((watcher, idx) => {
+    const cfg = watchersStore.watchers.slice(2)[idx]
+    tasks.push(
+      loadLineData({
+        lineParam: cfg.lineParam,
+        homeId: cfg.homeId,
+        data: watcher.data,
+        arrival: watcher.arrival,
+        arrival_point: watcher.arrival_point,
+        home_point: watcher.home_point,
+        arrival_map: watcher.arrival_map,
+        home_map: watcher.home_map,
+        isLate: watcher.isLate,
+        dataPlacemap: watcher.dataPlacemap,
+        updateService: false
+      })
+    )
+  })
+  await Promise.all(tasks)
 }
 
 const bar = ref(null)
