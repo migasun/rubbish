@@ -14,6 +14,26 @@
           <small class="text-grey-7">下拉可更新垃圾車位置資訊</small>
         </div>
 
+        <!-- 自動重新載入進度條 -->
+        <div class="auto-reload-progress q-mb-md" v-if="showAutoReloadProgress">
+          <q-card class="progress-card">
+            <q-card-section class="q-pa-sm">
+              <div class="progress-content">
+                <div class="progress-info">
+                  <q-icon name="schedule" size="sm" color="primary" class="q-mr-xs" />
+                  <small class="text-grey-7">{{ autoReloadCountdown }}秒後自動更新</small>
+                </div>
+                <q-linear-progress
+                  :value="autoReloadProgress"
+                  color="primary"
+                  size="4px"
+                  class="q-mt-xs"
+                />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+
         <!-- 頂部狀態概覽 -->
         <div class="status-overview">
           <q-card class="status-card">
@@ -23,7 +43,7 @@
                 <div class="status-text q-mt-sm">
                   <div class="text-h6">今日服務狀態</div>
                   <q-badge :color="getServiceColor()" class="text-h6 q-mt-xs">
-                    {{ inService }}
+                    {{ currentServiceStatus }}
                   </q-badge>
                 </div>
               </div>
@@ -44,12 +64,12 @@
               <q-tab name="noon" label="🌞 中午清運" class="route-tab" />
               <q-tab name="evening" label="🌙 晚上清運" class="route-tab" />
               <q-tab
-                v-for="(w, idx) in extraWatchers"
+                v-for="(_w, idx) in extraWatchers"
                 :key="`extra-${idx}`"
                 :name="`extra-${idx}`"
                 :label="getExtraTabLabel(idx)"
                 class="route-tab"
-                v-if="watchersStore.watchers.slice(2)[idx]"
+                v-if="watchersStore.watchers.length > 2 && watchersStore.watchers[idx + 2]"
               />
             </q-tabs>
           </div>
@@ -98,10 +118,10 @@
               :key="`panel-${idx}`"
               :name="`extra-${idx}`"
               class="route-panel"
-              v-if="watchersStore.watchers.slice(2)[idx]"
+              v-if="watchersStore.watchers.length > 2 && watchersStore.watchers[idx + 2]"
             >
               <RoutePanel
-                :route-name="watchersStore.watchers.slice(2)[idx].label"
+                :route-name="watchersStore.watchers[idx + 2]?.label || '未知路線'"
                 route-icon="location_on"
                 :route-data="w.data?.value || {}"
                 :home-point="w.home_point?.value || {}"
@@ -121,7 +141,7 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, computed } from 'vue'
 import { onBeforeMount, ref, watch, onUnmounted } from "vue";
 import axios from "axios";
 import { API_BASE_URL } from "src/boot/axios";
@@ -141,6 +161,12 @@ export default defineComponent({
 
   setup() {
     const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
+    // 添加缺失的 showRefreshHint 變數
+    const showRefreshHint = ref(true)
+    const showAutoReloadProgress = ref(false) // 新增：自動重新載入進度條顯示狀態
+    const autoReloadCountdown = ref(5) // 新增：倒數秒數
+    const autoReloadProgress = ref(0) // 新增：進度條百分比
+    const loading = ref(false) // 新增：loading 狀態
     const data24 = ref({})
     const arrival24 = ref({})
     const arrival_point24 = ref({})
@@ -164,6 +190,60 @@ export default defineComponent({
     // 新增：Tab 狀態管理
     const activeTab = ref('noon');
 
+    // 新增：動態計算當前 tab 的 home_point
+    const currentHomePoint = computed(() => {
+      if (activeTab.value === 'noon') {
+        return home_point24.value
+      } else if (activeTab.value === 'evening') {
+        return home_point60.value
+      } else if (activeTab.value.startsWith('extra-')) {
+        const idx = parseInt(activeTab.value.replace('extra-', ''))
+        return extraWatchers.value[idx]?.home_point?.value || {}
+      }
+      return {}
+    })
+
+    // 新增：動態計算當前 tab 的 arrival_point
+    const currentArrivalPoint = computed(() => {
+      if (activeTab.value === 'noon') {
+        return arrival_point24.value
+      } else if (activeTab.value === 'evening') {
+        return arrival_point60.value
+      } else if (activeTab.value.startsWith('extra-')) {
+        const idx = parseInt(activeTab.value.replace('extra-', ''))
+        return extraWatchers.value[idx]?.arrival_point?.value || {}
+      }
+      return {}
+    })
+
+    // 新增：動態計算當前 tab 的 route_data
+    const currentRouteData = computed(() => {
+      if (activeTab.value === 'noon') {
+        return data24.value
+      } else if (activeTab.value === 'evening') {
+        return data60.value
+      } else if (activeTab.value.startsWith('extra-')) {
+        const idx = parseInt(activeTab.value.replace('extra-', ''))
+        return extraWatchers.value[idx]?.data?.value || {}
+      }
+      return {}
+    })
+
+    // 新增：動態計算當前服務狀態（根據當前 tab 的 home_point）
+    const currentServiceStatus = computed(() => {
+      const homePoint = currentHomePoint.value
+      const schedule = homePoint?.schedule?.['#text'] ?? homePoint?.schedule ?? ''
+
+      if (schedule === '本日無清運') {
+        return '本日無清運'
+      } else if (schedule === '停止收運') {
+        return '停止收運'
+      } else {
+        // 如果schedule为空或其他值，显示正常服务状态
+        return schedule || '有垃圾車'
+      }
+    })
+
     // 新增：自動判斷當前時間應該顯示哪個 Tab
     function getDefaultTab() {
       const now = new Date()
@@ -172,9 +252,9 @@ export default defineComponent({
       return hour < 16 ? 'noon' : 'evening'
     }
 
-    // 新增：服務狀態顏色判斷
+    // 新增：服務狀態顏色判斷（改為使用動態狀態）
     function getServiceColor() {
-      if (inService.value === '本日無清運' || inService.value === '停止收運') {
+      if (currentServiceStatus.value === '本日無清運' || currentServiceStatus.value === '停止收運') {
         return 'negative'
       }
       return 'positive'
@@ -215,6 +295,29 @@ export default defineComponent({
       }
     );
 
+    // 新增：自動重新載入計時器相關變數
+    let autoReloadTimer = null
+    let countdownTimer = null
+    const RELOAD_INTERVAL = 30 // 30秒間隔
+
+    // 新增：開始自動重新載入倒數計時
+    function startAutoReloadCountdown() {
+      showAutoReloadProgress.value = true
+      autoReloadCountdown.value = 5 // 最後5秒顯示倒數
+      autoReloadProgress.value = 0
+
+      countdownTimer = setInterval(() => {
+        autoReloadCountdown.value--
+        autoReloadProgress.value = (5 - autoReloadCountdown.value) / 5
+
+        if (autoReloadCountdown.value <= 0) {
+          clearInterval(countdownTimer)
+          showAutoReloadProgress.value = false
+          loadData()
+        }
+      }, 1000)
+    }
+
     onBeforeMount(() => {
       // 設定預設 Tab（根據當前時間）
       activeTab.value = getDefaultTab()
@@ -222,7 +325,11 @@ export default defineComponent({
       // 首次初始化
       initializeExtraWatchers()
       loadData()
-      setInterval(loadData, 30000)
+
+      // 修改：改用新的計時器邏輯
+      autoReloadTimer = setInterval(() => {
+        startAutoReloadCountdown()
+      }, (RELOAD_INTERVAL - 5) * 1000) // 25秒後開始倒數
 
       // 監聽來自 MainLayout 的更新事件
       window.addEventListener('watcher-updated', (event) => {
@@ -232,9 +339,16 @@ export default defineComponent({
       })
     })
 
-    // 在組件卸載時清理事件監聽器
+    // 在組件卸載時清理事件監聽器和計時器
     onUnmounted(() => {
       window.removeEventListener('watcher-updated', loadData)
+      // 新增：清理計時器
+      if (autoReloadTimer) {
+        clearInterval(autoReloadTimer)
+      }
+      if (countdownTimer) {
+        clearInterval(countdownTimer)
+      }
     })
 
     function refresh(done) {
@@ -281,6 +395,7 @@ export default defineComponent({
 
       if (updateService) {
         const schedule = home_point.value.schedule?.['#text'] ?? home_point.value.schedule ?? ''
+
 
         // 修复服务状态逻辑
         if (schedule === '本日無清運') {
@@ -351,6 +466,7 @@ export default defineComponent({
     }
 
     async function loadData() {
+      loading.value = true
       const tasks = [
         loadLineData({
           lineParam: 'line24',
@@ -400,6 +516,11 @@ export default defineComponent({
         }
       })
       await Promise.all(tasks)
+
+      // 觸發 MainLayout 重新載入監看點選項
+      window.dispatchEvent(new CustomEvent('auto-reload'))
+
+      loading.value = false
     }
 
     const bar = ref(null)
@@ -497,6 +618,11 @@ export default defineComponent({
     return {
       // 數據
       unwrap,
+      showRefreshHint,
+      showAutoReloadProgress, // 新增：自動重新載入進度條顯示狀態
+      autoReloadCountdown, // 新增：倒數秒數
+      autoReloadProgress, // 新增：進度條百分比
+      loading, // 新增：loading 狀態
       data24,
       arrival24,
       arrival_point24,
@@ -518,6 +644,11 @@ export default defineComponent({
       extraWatchers,
       activeTab,
       bar,
+      // 新增：動態計算的當前 tab 數據
+      currentHomePoint,
+      currentArrivalPoint,
+      currentRouteData,
+      currentServiceStatus,
 
       // 方法
       getServiceColor,
@@ -635,5 +766,40 @@ export default defineComponent({
   /* 下拉刷新提示文字樣式 */
   margin-left: 40px;
   color: #666;
+}
+
+.auto-reload-progress {
+  /* 自動重新載入進度條樣式 */
+  margin-bottom: 16px;
+}
+
+.progress-card {
+  /* 進度卡片樣式 */
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.progress-content {
+  /* 進度內容區域樣式 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.progress-info {
+  /* 進度資訊樣式 */
+  display: flex;
+  align-items: center;
+}
+
+.progress-info q-icon {
+  /* 進度資訊圖示樣式 */
+  margin-right: 8px;
+}
+
+.q-linear-progress {
+  /* 自定義進度條樣式 */
+  border-radius: 4px;
 }
 </style>

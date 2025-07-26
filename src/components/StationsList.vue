@@ -70,8 +70,16 @@
                     @click="openMap(station)"
                     class="full-width"
                     style="min-height: 18px; font-size: 0.6rem;"
+                    :aria-label="'查看地圖位置'"
                   >
-                    <q-tooltip>查看地圖位置</q-tooltip>
+                    <q-tooltip
+                      anchor="top middle"
+                      self="bottom middle"
+                      :delay="500"
+                      class="bg-grey-8"
+                    >
+                      查看地圖位置
+                    </q-tooltip>
                   </q-btn>
                 </div>
               </q-card-section>

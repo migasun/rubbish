@@ -46,7 +46,7 @@
           <q-item-section>
             <q-select
               v-model="line24HomeId"
-              :options="getPointOptions('line24')"
+              :options="line24Options"
               option-value="value"
               option-label="label"
               label="中午清運路線監看點"
@@ -61,7 +61,7 @@
           <q-item-section>
             <q-select
               v-model="line60HomeId"
-              :options="getPointOptions('line60')"
+              :options="line60Options"
               option-value="value"
               option-label="label"
               label="晚上清運路線監看點"
@@ -196,9 +196,65 @@ export default defineComponent({
       Object.keys(watchersStore.lineConfigs).forEach(lineParam => {
         loadPointsForLine(lineParam)
       })
+
+      // 監聽自動更新事件，重新載入監看點數據
+      const handleAutoReload = () => {
+        console.log('Auto reload triggered, reloading points data...')
+        Object.keys(watchersStore.lineConfigs).forEach(lineParam => {
+          loadPointsForLine(lineParam)
+        })
+      }
+
+      // 監聽頁面的自動更新事件
+      window.addEventListener('auto-reload', handleAutoReload)
+      window.addEventListener('refresh', handleAutoReload)
+
+      // 組件卸載時清理事件監聽器
+      return () => {
+        window.removeEventListener('auto-reload', handleAutoReload)
+        window.removeEventListener('refresh', handleAutoReload)
+      }
     })
 
-    const getPointOptions = computed(() => (lineParam) => {
+    // 創建響應式的選項計算屬性
+    const line24Options = computed(() => {
+      const points = watchersStore.availablePoints['line24'] || []
+      return points.map(point => {
+        let label = `${point.homeName || point.homeId} - ${point.schedule || '時程未定'}`
+
+        if (point.isCurrentLocation) {
+          label = `🚛 ${point.homeName || point.homeId} - ${point.schedule || '時程未定'} (垃圾車目前位置)`
+        }
+
+        label += ` (ID: ${point.homeId})`
+
+        return {
+          value: point.homeId,
+          label: label
+        }
+      }).filter(option => option.value && option.value > 0)
+    })
+
+    const line60Options = computed(() => {
+      const points = watchersStore.availablePoints['line60'] || []
+      return points.map(point => {
+        let label = `${point.homeName || point.homeId} - ${point.schedule || '時程未定'}`
+
+        if (point.isCurrentLocation) {
+          label = `🚛 ${point.homeName || point.homeId} - ${point.schedule || '時程未定'} (垃圾車目前位置)`
+        }
+
+        label += ` (ID: ${point.homeId})`
+
+        return {
+          value: point.homeId,
+          label: label
+        }
+      }).filter(option => option.value && option.value > 0)
+    })
+
+    // 保留 getPointOptions 函數用於調試或其他用途
+    const getPointOptions = (lineParam) => {
       // 從 store 獲取可用的監看點
       const points = watchersStore.availablePoints[lineParam] || []
       console.log(`Getting point options for ${lineParam}:`, points)
@@ -219,7 +275,7 @@ export default defineComponent({
           label: label
         }
       }).filter(option => option.value && option.value > 0) // 過濾無效選項
-    })
+    }
 
     function removeWatcher(index) {
       watchersStore.removeWatcher(index)
@@ -265,6 +321,8 @@ export default defineComponent({
       watchers: watchersStore.watchers,
       line24HomeId,
       line60HomeId,
+      line24Options,
+      line60Options,
       getPointOptions,
       removeWatcher,
       leftDrawerOpen,
