@@ -1,5 +1,5 @@
 // 測試 API 回應結構
-fetch('https://steep-smoke-0e4c.chrisyep.workers.dev/?lineId=235024')
+fetch('https://steep-smoke-0e4c.vega-0b1.workers.dev/?lineId=235024')
   .then(response => response.json())
   .then(data => {
     console.log('完整 API 回應:', JSON.stringify(data, null, 2))

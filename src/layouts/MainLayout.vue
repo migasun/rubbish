@@ -76,14 +76,15 @@
     </q-drawer>
 
     <q-page-container>
-      <WatcherSelector />
+      <!-- 隱藏新增監看點功能 -->
+      <!-- <WatcherSelector /> -->
       <router-view />
     </q-page-container>
   </q-layout>
 </template>
 
 <script>
-import { defineComponent, ref, watch, computed, nextTick } from 'vue'
+import { defineComponent, ref, watch, computed, nextTick, onMounted } from 'vue'
 import { useWatchersStore } from 'src/stores/watchers'
 import WatcherSelector from 'src/components/WatcherSelector.vue'
 
@@ -102,16 +103,122 @@ export default defineComponent({
     const line24HomeId = ref(watchersStore.watchers[0]?.homeId || 894299)
     const line60HomeId = ref(watchersStore.watchers[1]?.homeId || 995714)
 
+    // 根據環境設定 API 基礎網址
+    const getApiBaseUrl = () => {
+      return import.meta.env.VITE_API_BASE_URL ||
+        (import.meta.env.DEV
+          ? 'http://localhost:8787'
+          : 'https://steep-smoke-0e4c.vega-0b1.workers.dev')
+    }
+
+    // 載入監看點數據的函數
+    async function loadPointsForLine(lineParam) {
+      if (!lineParam) return
+
+      try {
+        const lineConfig = watchersStore.getLineConfig(lineParam)
+        const apiBaseUrl = getApiBaseUrl()
+
+        console.log(`Loading points for ${lineParam}, API: ${apiBaseUrl}/?lineId=${lineConfig.id}`)
+
+        const response = await fetch(`${apiBaseUrl}/?lineId=${lineConfig.id}`)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        // 獲取當前垃圾車位置（arrival 站點編號）
+        const currentArrivalRank = parseInt(data.line?.arrival?.['#text'] || data.line?.arrival || 0)
+
+        let homes = []
+
+        // 根據實際的 API 結構解析監看點
+        if (data.line && data.line.points && data.line.points.point) {
+          const points = Array.isArray(data.line.points.point) ?
+            data.line.points.point : [data.line.points.point]
+
+          homes = points.map(point => {
+            const pointRank = parseInt(point.rank?.['#text'] || point.rank || 0)
+            const isCurrentLocation = pointRank === currentArrivalRank
+
+            // 檢查 arrival 欄位是否包含垃圾車圖示標記
+            const arrivalText = point.arrival?.['#text'] || point.arrival || ''
+            const hasCarIcon = arrivalText.includes('Icon_CarS.png') || arrivalText.includes('now-at')
+
+            return {
+              id: point.id?.['#text'],
+              name: point.name?.['#text'],
+              schedule: point.schedule?.['#text'],
+              arrival: point.arrival?.['#text'],
+              rank: point.rank?.['#text'],
+              longitude: point.longitude?.['#text'],
+              latitude: point.latitude?.['#text'],
+              fixedPoint: point.fixedPoint?.['#text'],
+              isCurrentLocation: isCurrentLocation || hasCarIcon,
+              currentLocationStatus: isCurrentLocation || hasCarIcon ? '🚛 垃圾車目前位置' : '',
+              raw: point
+            }
+          })
+        }
+
+        if (homes.length > 0) {
+          const points = homes.map(home => {
+            const id = home.id;
+            const name = home.name;
+            const schedule = home.schedule || home.arrival;
+
+            return {
+              homeId: parseInt(id || 0),
+              homeName: name || `監看點 ${id}`,
+              schedule: schedule || '時程未定',
+              status: home.status || '未知',
+              rank: home.rank || '',
+              longitude: home.longitude || '',
+              latitude: home.latitude || '',
+              isCurrentLocation: home.isCurrentLocation || false,
+              currentLocationStatus: home.currentLocationStatus || '',
+              raw: home
+            }
+          }).filter(point => point.homeId > 0)
+
+          watchersStore.setAvailablePoints(lineParam, points)
+        }
+      } catch (error) {
+        console.error('載入監看點失敗:', error)
+        watchersStore.setAvailablePoints(lineParam, [])
+      }
+    }
+
+    // 在組件掛載時載入監看點數據
+    onMounted(() => {
+      Object.keys(watchersStore.lineConfigs).forEach(lineParam => {
+        loadPointsForLine(lineParam)
+      })
+    })
+
     const getPointOptions = computed(() => (lineParam) => {
       // 從 store 獲取可用的監看點
       const points = watchersStore.availablePoints[lineParam] || []
       console.log(`Getting point options for ${lineParam}:`, points)
 
       // 處理數據格式，確保與 WatcherSelector 中的格式一致
-      return points.map(point => ({
-        value: point.homeId,
-        label: `${point.homeName || point.homeId} - ${point.schedule || '時程未定'} (ID: ${point.homeId})`
-      })).filter(option => option.value && option.value > 0) // 過濾無效選項
+      return points.map(point => {
+        let label = `${point.homeName || point.homeId} - ${point.schedule || '時程未定'}`
+
+        // 如果是當前垃圾車位置，添加特殊標記
+        if (point.isCurrentLocation) {
+          label = `🚛 ${point.homeName || point.homeId} - ${point.schedule || '時程未定'} (垃圾車目前位置)`
+        }
+
+        label += ` (ID: ${point.homeId})`
+
+        return {
+          value: point.homeId,
+          label: label
+        }
+      }).filter(option => option.value && option.value > 0) // 過濾無效選項
     })
 
     function removeWatcher(index) {

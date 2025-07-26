@@ -77,10 +77,21 @@ export default defineComponent({
         return []
       }
 
-      return availablePoints.value[selectedLineParam.value].map(point => ({
-        value: point.homeId,
-        label: `${point.homeName} - ${point.schedule} (ID: ${point.homeId})`
-      }))
+      return availablePoints.value[selectedLineParam.value].map(point => {
+        let label = `${point.homeName} - ${point.schedule}`
+
+        // 如果是當前垃圾車位置，添加特殊標記
+        if (point.isCurrentLocation) {
+          label = `🚛 ${point.homeName} - ${point.schedule} (垃圾車目前位置)`
+        }
+
+        label += ` (ID: ${point.homeId})`
+
+        return {
+          value: point.homeId,
+          label: label
+        }
+      })
     })
 
     // 根據環境設定 API 基礎網址
@@ -131,6 +142,10 @@ export default defineComponent({
         const structureAnalysis = analyzeDataStructure(data)
         console.log('Data structure analysis:', structureAnalysis)
 
+        // 獲取當前垃圾車位置（arrival 站點編號）
+        const currentArrivalRank = parseInt(data.line?.arrival?.['#text'] || data.line?.arrival || 0)
+        console.log('Current truck location (arrival rank):', currentArrivalRank)
+
         // 修正數據結構解析邏輯 - 針對實際的 API 結構
         let homes = []
 
@@ -143,6 +158,13 @@ export default defineComponent({
           console.log('Raw points from API:', points)
 
           homes = points.map(point => {
+            const pointRank = parseInt(point.rank?.['#text'] || point.rank || 0)
+            const isCurrentLocation = pointRank === currentArrivalRank
+
+            // 檢查 arrival 欄位是否包含垃圾車圖示標記
+            const arrivalText = point.arrival?.['#text'] || point.arrival || ''
+            const hasCarIcon = arrivalText.includes('Icon_CarS.png') || arrivalText.includes('now-at')
+
             return {
               // 從 #text 屬性中提取實際值
               id: point.id?.['#text'],
@@ -153,6 +175,9 @@ export default defineComponent({
               longitude: point.longitude?.['#text'],
               latitude: point.latitude?.['#text'],
               fixedPoint: point.fixedPoint?.['#text'],
+              // 新增：標記當前垃圾車位置
+              isCurrentLocation: isCurrentLocation || hasCarIcon,
+              currentLocationStatus: isCurrentLocation || hasCarIcon ? '🚛 垃圾車目前位置' : '',
               // 保留原始數據
               raw: point
             }
@@ -242,6 +267,9 @@ export default defineComponent({
               rank: home.rank || '',
               longitude: home.longitude || '',
               latitude: home.latitude || '',
+              // 新增：當前位置標記
+              isCurrentLocation: home.isCurrentLocation || false,
+              currentLocationStatus: home.currentLocationStatus || '',
               // 保留原始數據以供調試
               raw: home
             }

@@ -6,7 +6,7 @@
       <div class="schedule-info">
         <q-badge color="secondary text-h5">{{ unwrap(homePoint.schedule) }}</q-badge>
         <span class="arrival-text">預計 </span>
-        <q-badge color="secondary text-h5">{{ unwrap(homePoint.arrival) }}到達</q-badge>
+        <q-badge color="secondary text-h5">{{ formatArrivalDisplay(unwrap(homePoint.arrival)) }}到達</q-badge>
       </div>
     </div>
 
@@ -16,8 +16,8 @@
         <!-- 数据不完整或加载中 -->
         <div class="status-badge">
           <q-badge color="grey text-body1">
-            <q-icon name="help_outline" class="q-mr-xs" />
-            資料載入中...
+
+            isLate: {{ isLate }}
           </q-badge>
         </div>
       </template>
@@ -76,9 +76,7 @@
               <div class="current-location">
                 <small>目前位置: {{ unwrap(arrivalPoint.name) || '未知' }}</small>
               </div>
-              <div class="eta">
-                <small>預計: {{ unwrap(arrivalPoint.arrival) || '未知' }}</small>
-              </div>
+
             </div>
           </div>
         </div>
@@ -208,10 +206,23 @@ export default defineComponent({
       return `第 ${currentRank} 站`
     })
 
+    // 格式化到達時間顯示
+    const formatArrivalDisplay = (arrivalText) => {
+      if (!arrivalText) return '時程未定'
+
+      // 如果包含HTML標籤（垃圾車圖示），顯示為"目前位置"
+      if (arrivalText.includes('Icon_CarS.png') || arrivalText.includes('now-at')) {
+        return '🚛 目前位置'
+      }
+
+      return arrivalText
+    }
+
     return {
       unwrap,
       progressValue,
-      currentLocationLabel
+      currentLocationLabel,
+      formatArrivalDisplay
     }
   }
 })
