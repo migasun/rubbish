@@ -33,7 +33,51 @@
 
 #### 關鍵技術解決方案
 
-**1. 地圖尺寸問題解決**
+**1. Leaflet 2.0.0-alpha 升級 (2025年7月)**
+
+我們成功從 CDN 版本 leaflet@1.9.4 升級到本地安裝的 leaflet@2.0.0-alpha，獲得以下改進：
+
+✅ **性能提升**：本地資源載入比 CDN 更快更可靠
+✅ **版本控制**：精確控制依賴版本，避免第三方服務變更
+✅ **離線支持**：減少對外部 CDN 的依賴
+✅ **現代化 API**：使用最新的 Leaflet 2.0 架構
+
+**重要 API 變更**：
+```javascript
+// 舊版 leaflet@1.9.4 (CDN)
+const map = L.map(container, options)
+const tileLayer = L.tileLayer(url, options)
+const marker = L.circleMarker(latlng, options)
+
+// 新版 leaflet@2.0.0-alpha (本地)
+const map = new L.Map(container, options)
+const tileLayer = new L.TileLayer(url, options)
+const marker = new L.CircleMarker(latlng, options)
+```
+
+**圖標資源處理**：
+```javascript
+// ES6 模組導入方式
+import markerIcon from 'leaflet/dist/images/marker-icon.png'
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
+import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+
+// 修復預設圖標
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+})
+```
+
+**升級重點**：
+- 🔄 **API 統一化**：所有類別都使用 `new` 關鍵字實例化
+- 📦 **模組化導入**：從 CDN 切換到 ES6 import/export
+- 🎯 **類型安全**：更嚴格的物件導向設計
+- ⚡ **效能最佳化**：移除舊版相容性代碼
+
+**2. 地圖尺寸問題解決**
 ```javascript
 // 多重尺寸刷新機制確保地圖正確顯示
 const forceResize = () => {
@@ -50,7 +94,7 @@ setTimeout(forceResize, 300)
 setTimeout(forceResize, 500)
 ```
 
-**2. 資源載入優化**
+**3. 資源載入優化**
 ```javascript
 // 單例模式避免重複載入 Leaflet 資源
 class LeafletLoader {
@@ -67,7 +111,7 @@ class LeafletLoader {
 }
 ```
 
-**3. 響應式標記系統**
+**4. 響應式標記系統**
 ```javascript
 // 使用計算屬性確保標記即時更新
 const line24Options = computed(() => {
@@ -82,7 +126,7 @@ const line24Options = computed(() => {
 })
 ```
 
-**4. 效能優化策略**
+**5. 效能優化策略**
 - **防抖更新**：150ms 防抖避免頻繁重繪
 - **批量標記管理**：使用 LayerGroup 批量操作
 - **圖標快取**：避免重複創建相同圖標

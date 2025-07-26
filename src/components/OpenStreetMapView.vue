@@ -61,99 +61,19 @@
 
 <script>
 import { defineComponent, ref, onMounted, watch, nextTick, onUnmounted, computed } from 'vue'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import markerIcon from 'leaflet/dist/images/marker-icon.png'
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
+import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 
-// 全域資源管理
-const LEAFLET_CDN = {
-  css: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  js: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-}
-
-class LeafletLoader {
-  static instance = null
-  static loadPromise = null
-  static isLoaded = false
-
-  static getInstance() {
-    if (!this.instance) {
-      this.instance = new LeafletLoader()
-    }
-    return this.instance
-  }
-
-  async load() {
-    if (LeafletLoader.isLoaded && window.L) {
-      return Promise.resolve()
-    }
-
-    if (LeafletLoader.loadPromise) {
-      return LeafletLoader.loadPromise
-    }
-
-    LeafletLoader.loadPromise = this._loadResources()
-    return LeafletLoader.loadPromise
-  }
-
-  async _loadResources() {
-    try {
-      // 同時載入 CSS 和 JS
-      await Promise.all([
-        this._loadCSS(),
-        this._loadJS()
-      ])
-
-      LeafletLoader.isLoaded = true
-      LeafletLoader.loadPromise = null
-
-      // 確保 Leaflet 完全可用
-      await new Promise(resolve => {
-        if (window.L && window.L.map) {
-          resolve()
-        } else {
-          setTimeout(resolve, 100) // 給一點時間讓 Leaflet 初始化
-        }
-      })
-
-    } catch (error) {
-      LeafletLoader.loadPromise = null
-      throw error
-    }
-  }
-
-  _loadCSS() {
-    return new Promise((resolve, reject) => {
-      // 檢查是否已經載入
-      const existingLink = document.querySelector(`link[href="${LEAFLET_CDN.css}"]`)
-      if (existingLink) {
-        resolve()
-        return
-      }
-
-      const link = document.createElement('link')
-      link.rel = 'stylesheet'
-      link.href = LEAFLET_CDN.css
-      link.onload = resolve
-      link.onerror = () => reject(new Error('CSS 載入失敗'))
-      document.head.appendChild(link)
-    })
-  }
-
-  _loadJS() {
-    return new Promise((resolve, reject) => {
-      // 檢查是否已經載入
-      if (window.L) {
-        resolve()
-        return
-      }
-
-      const script = document.createElement('script')
-      script.src = LEAFLET_CDN.js
-      script.async = true
-      script.onload = resolve
-      script.onerror = () => reject(new Error('JavaScript 載入失敗'))
-      document.head.appendChild(script)
-    })
-  }
-}
+// 修復 Leaflet 預設標記圖標問題
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+})
 
 export default defineComponent({
   name: 'OpenStreetMapView',
@@ -191,8 +111,6 @@ export default defineComponent({
     const map = ref(null)
     const markersLayer = ref(null)
 
-    const leafletLoader = LeafletLoader.getInstance()
-
     // 檢查是否有有效數據
     const hasValidData = computed(() => {
       return props.routeData?.points?.point &&
@@ -202,105 +120,37 @@ export default defineComponent({
 
     // 初始化地圖
     async function initMap() {
+      if (!mapContainer.value) {
+        console.error('地圖容器未找到')
+        return
+      }
+
       try {
         console.log('開始初始化地圖...')
         mapState.value = 'loading'
-        errorMessage.value = ''
 
-        // 確保 DOM 準備好
-        await nextTick()
-        if (!mapContainer.value) {
-          throw new Error('地圖容器未找到')
-        }
-
-        // 載入 Leaflet
-        console.log('載入 Leaflet 資源...')
-        await leafletLoader.load()
-        console.log('Leaflet 載入完成')
-
-        // 清理舊地圖
-        if (map.value) {
-          console.log('清理舊地圖...')
-          map.value.remove()
-          map.value = null
-          markersLayer.value = null
-        }
-
-        // 等待一個 tick 確保清理完成
+        // 直接初始化地圖，不需要載入 CDN 資源
         await nextTick()
 
-        // 創建新地圖
-        console.log('創建新地圖...')
-        map.value = L.map(mapContainer.value, {
-          center: [props.centerLocation.lat, props.centerLocation.lng],
-          zoom: 15,
+        // 創建地圖實例 - leaflet@2.0.0-alpha 使用 new L.Map()
+        map.value = new L.Map(mapContainer.value, {
           zoomControl: true,
-          attributionControl: true,
-          preferCanvas: false, // 簡化設置
-          fadeAnimation: true,
-          zoomAnimation: true,
-          markerZoomAnimation: true
+          attributionControl: true
         })
+        map.value.setView([props.centerLocation.lat, props.centerLocation.lng], 13)
 
-        // 添加圖層
-        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // 添加 OpenStreetMap 圖層 - 也需要使用 new
+        const tileLayer = new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19
         })
-
-        tileLayer.addTo(map.value)
-
-        // 強制刷新地圖尺寸 - 多次嘗試確保生效
-        const forceResize = () => {
-          if (map.value) {
-            map.value.invalidateSize()
-            console.log('地圖尺寸已刷新')
-          }
-        }
-
-        // 立即執行一次
-        forceResize()
-
-        // 延遲執行多次，確保在不同時機都能正確調整
-        setTimeout(forceResize, 50)
-        setTimeout(forceResize, 150)
-        setTimeout(forceResize, 300)
-        setTimeout(forceResize, 500)
-
-        // 監聽視窗尺寸變化
-        const handleResize = () => {
-          if (map.value) {
-            map.value.invalidateSize()
-          }
-        }
-        window.addEventListener('resize', handleResize)
-
-        // 清理函數
-        const cleanup = () => {
-          window.removeEventListener('resize', handleResize)
-        }
-
-        await new Promise((resolve) => {
-          tileLayer.on('load', () => {
-            // 圖層載入完成後再次刷新尺寸
-            setTimeout(forceResize, 100)
-            resolve()
-          })
-          // 超時保護
-          setTimeout(() => {
-            forceResize()
-            resolve()
-          }, 2000)
-        })
+        map.value.addLayer(tileLayer)
 
         console.log('地圖初始化完成')
         mapState.value = 'ready'
 
-        // 如果有數據，立即添加標記
-        if (hasValidData.value) {
-          await nextTick()
-          addMarkers()
-        }
+        // 添加標記
+        addMarkers()
 
       } catch (error) {
         console.error('地圖初始化失敗:', error)
@@ -324,8 +174,9 @@ export default defineComponent({
           map.value.removeLayer(markersLayer.value)
         }
 
-        markersLayer.value = L.layerGroup()
-        const bounds = L.latLngBounds()
+        // leaflet@2.0.0-alpha 需要使用 new
+        markersLayer.value = new L.LayerGroup()
+        const bounds = new L.LatLngBounds()
         let validMarkerCount = 0
 
         const points = Array.isArray(props.routeData.points.point)
@@ -361,7 +212,8 @@ export default defineComponent({
             size = 8
           }
 
-          const marker = L.circleMarker([lat, lng], {
+          // leaflet@2.0.0-alpha 需要使用 new L.CircleMarker
+          const marker = new L.CircleMarker([lat, lng], {
             radius: size,
             fillColor: color,
             color: 'white',
@@ -390,7 +242,7 @@ export default defineComponent({
         })
 
         if (validMarkerCount > 0) {
-          markersLayer.value.addTo(map.value)
+          map.value.addLayer(markersLayer.value)
 
           // 調整視野
           requestAnimationFrame(() => {
