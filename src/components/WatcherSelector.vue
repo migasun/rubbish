@@ -88,7 +88,7 @@ export default defineComponent({
       return import.meta.env.VITE_API_BASE_URL ||
         (import.meta.env.DEV
           ? 'http://localhost:8787'
-          : 'https://steep-smoke-0e4c.chrisyep.workers.dev')
+          : 'https://steep-smoke-0e4c.vega-0b1.workers.dev')
     }
 
     async function loadPointsForLine(lineParam) {
