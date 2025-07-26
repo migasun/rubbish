@@ -10,8 +10,15 @@
 
         <!-- 下拉刷新提示 -->
         <div class="refresh-hint q-pa-sm text-center" v-if="showRefreshHint">
-          <q-icon name="refresh" size="sm" color="primary" class="q-mr-xs" />
-          <small class="text-grey-7">下拉可更新垃圾車位置資訊</small>
+          <q-btn
+            flat
+            no-caps
+            @click="handleRefreshClick"
+            class="refresh-hint-btn"
+          >
+            <q-icon name="refresh" size="sm" color="primary" class="q-mr-xs" />
+            <small class="text-grey-7">下拉可更新垃圾車位置資訊</small>
+          </q-btn>
         </div>
 
         <!-- 自動重新載入進度條 -->
@@ -302,6 +309,12 @@ export default defineComponent({
 
     // 新增：開始自動重新載入倒數計時
     function startAutoReloadCountdown() {
+      // 清除現有的倒數計時器，避免重複
+      if (countdownTimer) {
+        clearInterval(countdownTimer)
+        countdownTimer = null
+      }
+
       showAutoReloadProgress.value = true
       autoReloadCountdown.value = 5 // 最後5秒顯示倒數
       autoReloadProgress.value = 0
@@ -312,6 +325,7 @@ export default defineComponent({
 
         if (autoReloadCountdown.value <= 0) {
           clearInterval(countdownTimer)
+          countdownTimer = null
           showAutoReloadProgress.value = false
           loadData()
         }
@@ -615,6 +629,26 @@ export default defineComponent({
       activeTab.value = tabs[previousIndex]
     }
 
+    // 新增：處理刷新按鈕點擊
+    function handleRefreshClick() {
+      // 重置自動重新載入計時器，避免衝突
+      if (autoReloadTimer) {
+        clearInterval(autoReloadTimer)
+      }
+      if (countdownTimer) {
+        clearInterval(countdownTimer)
+        countdownTimer = null
+      }
+
+      // 執行刷新
+      refresh(() => {
+        // 刷新完成後，重新啟動自動重新載入計時器
+        autoReloadTimer = setInterval(() => {
+          startAutoReloadCountdown()
+        }, (RELOAD_INTERVAL - 5) * 1000) // 25秒後開始倒數
+      })
+    }
+
     return {
       // 數據
       unwrap,
@@ -655,6 +689,7 @@ export default defineComponent({
       getExtraTabLabel,
       refresh,
       loadData,
+      handleRefreshClick, // 新增：刷新按鈕點擊處理函數
       // 新增：滑動相關方法
       handleTouchStart,
       handleTouchMove,

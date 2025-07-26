@@ -11,29 +11,35 @@
     </div>
 
     <div class="map-wrapper">
-      <div id="leaflet-map" class="leaflet-map"></div>
+      <div ref="mapContainer" class="leaflet-map"></div>
 
-      <!-- 載入中顯示 -->
-      <div v-if="isLoading" class="map-loading">
+      <!-- 載入狀態 -->
+      <div v-if="mapState === 'loading'" class="map-overlay">
         <q-spinner-dots size="50px" color="primary" />
         <div class="q-mt-md">載入地圖中...</div>
       </div>
 
-      <!-- 錯誤顯示 -->
-      <div v-if="hasError" class="map-error">
+      <!-- 錯誤狀態 -->
+      <div v-else-if="mapState === 'error'" class="map-overlay">
         <q-icon name="error" size="50px" color="negative" />
         <div class="q-mt-md">{{ errorMessage }}</div>
         <q-btn
           color="primary"
           label="重新載入"
-          @click="initMap"
+          @click="retryInit"
           class="q-mt-md"
         />
+      </div>
+
+      <!-- 成功但無數據 -->
+      <div v-else-if="mapState === 'ready' && !hasValidData" class="map-overlay">
+        <q-icon name="info" size="50px" color="info" />
+        <div class="q-mt-md">等待路線數據...</div>
       </div>
     </div>
 
     <!-- 圖例 -->
-    <div class="map-legend q-pa-md">
+    <div class="map-legend q-pa-md" v-if="mapState === 'ready'">
       <div class="text-subtitle2 q-mb-sm">圖例說明</div>
       <div class="legend-items">
         <div class="legend-item">
@@ -54,7 +60,100 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, watch, nextTick, onUnmounted } from 'vue'
+import { defineComponent, ref, onMounted, watch, nextTick, onUnmounted, computed } from 'vue'
+
+// 全域資源管理
+const LEAFLET_CDN = {
+  css: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+  js: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+}
+
+class LeafletLoader {
+  static instance = null
+  static loadPromise = null
+  static isLoaded = false
+
+  static getInstance() {
+    if (!this.instance) {
+      this.instance = new LeafletLoader()
+    }
+    return this.instance
+  }
+
+  async load() {
+    if (LeafletLoader.isLoaded && window.L) {
+      return Promise.resolve()
+    }
+
+    if (LeafletLoader.loadPromise) {
+      return LeafletLoader.loadPromise
+    }
+
+    LeafletLoader.loadPromise = this._loadResources()
+    return LeafletLoader.loadPromise
+  }
+
+  async _loadResources() {
+    try {
+      // 同時載入 CSS 和 JS
+      await Promise.all([
+        this._loadCSS(),
+        this._loadJS()
+      ])
+
+      LeafletLoader.isLoaded = true
+      LeafletLoader.loadPromise = null
+
+      // 確保 Leaflet 完全可用
+      await new Promise(resolve => {
+        if (window.L && window.L.map) {
+          resolve()
+        } else {
+          setTimeout(resolve, 100) // 給一點時間讓 Leaflet 初始化
+        }
+      })
+
+    } catch (error) {
+      LeafletLoader.loadPromise = null
+      throw error
+    }
+  }
+
+  _loadCSS() {
+    return new Promise((resolve, reject) => {
+      // 檢查是否已經載入
+      const existingLink = document.querySelector(`link[href="${LEAFLET_CDN.css}"]`)
+      if (existingLink) {
+        resolve()
+        return
+      }
+
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = LEAFLET_CDN.css
+      link.onload = resolve
+      link.onerror = () => reject(new Error('CSS 載入失敗'))
+      document.head.appendChild(link)
+    })
+  }
+
+  _loadJS() {
+    return new Promise((resolve, reject) => {
+      // 檢查是否已經載入
+      if (window.L) {
+        resolve()
+        return
+      }
+
+      const script = document.createElement('script')
+      script.src = LEAFLET_CDN.js
+      script.async = true
+      script.onload = resolve
+      script.onerror = () => reject(new Error('JavaScript 載入失敗'))
+      document.head.appendChild(script)
+    })
+  }
+}
 
 export default defineComponent({
   name: 'OpenStreetMapView',
@@ -79,215 +178,274 @@ export default defineComponent({
     centerLocation: {
       type: Object,
       default: () => ({
-        lat: 24.9896,  // 中和中山路三段32號附近
+        lat: 24.9896,
         lng: 121.4953
       })
     }
   },
 
   setup(props) {
-    const isLoading = ref(true)
-    const hasError = ref(false)
+    const mapContainer = ref(null)
+    const mapState = ref('loading') // 'loading', 'ready', 'error'
     const errorMessage = ref('')
     const map = ref(null)
-    const markers = ref([])
+    const markersLayer = ref(null)
 
-    // 載入 Leaflet 庫
-    function loadLeaflet() {
-      return new Promise((resolve, reject) => {
-        // 檢查是否已載入
-        if (window.L) {
-          resolve()
-          return
-        }
+    const leafletLoader = LeafletLoader.getInstance()
 
-        // 載入 CSS
-        const cssLink = document.createElement('link')
-        cssLink.rel = 'stylesheet'
-        cssLink.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-        cssLink.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY='
-        cssLink.crossOrigin = ''
-        document.head.appendChild(cssLink)
-
-        // 載入 JavaScript
-        const script = document.createElement('script')
-        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-        script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo='
-        script.crossOrigin = ''
-        script.onload = resolve
-        script.onerror = () => reject(new Error('無法載入地圖庫'))
-        document.head.appendChild(script)
-      })
-    }
+    // 檢查是否有有效數據
+    const hasValidData = computed(() => {
+      return props.routeData?.points?.point &&
+             Array.isArray(props.routeData.points.point) &&
+             props.routeData.points.point.length > 0
+    })
 
     // 初始化地圖
     async function initMap() {
       try {
-        isLoading.value = true
-        hasError.value = false
+        console.log('開始初始化地圖...')
+        mapState.value = 'loading'
         errorMessage.value = ''
 
-        // 載入 Leaflet
-        await loadLeaflet()
-
-        // 等待 DOM 更新
+        // 確保 DOM 準備好
         await nextTick()
-
-        const mapElement = document.getElementById('leaflet-map')
-        if (!mapElement) {
-          throw new Error('找不到地圖容器')
+        if (!mapContainer.value) {
+          throw new Error('地圖容器未找到')
         }
 
-        // 創建地圖
-        map.value = L.map(mapElement).setView([props.centerLocation.lat, props.centerLocation.lng], 15)
+        // 載入 Leaflet
+        console.log('載入 Leaflet 資源...')
+        await leafletLoader.load()
+        console.log('Leaflet 載入完成')
 
-        // 添加 OpenStreetMap 圖層
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        // 清理舊地圖
+        if (map.value) {
+          console.log('清理舊地圖...')
+          map.value.remove()
+          map.value = null
+          markersLayer.value = null
+        }
+
+        // 等待一個 tick 確保清理完成
+        await nextTick()
+
+        // 創建新地圖
+        console.log('創建新地圖...')
+        map.value = L.map(mapContainer.value, {
+          center: [props.centerLocation.lat, props.centerLocation.lng],
+          zoom: 15,
+          zoomControl: true,
+          attributionControl: true,
+          preferCanvas: false, // 簡化設置
+          fadeAnimation: true,
+          zoomAnimation: true,
+          markerZoomAnimation: true
+        })
+
+        // 添加圖層
+        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors',
           maxZoom: 19
-        }).addTo(map.value)
+        })
 
-        // 添加標記
-        addMarkersToMap()
+        tileLayer.addTo(map.value)
 
-        isLoading.value = false
+        // 強制刷新地圖尺寸 - 多次嘗試確保生效
+        const forceResize = () => {
+          if (map.value) {
+            map.value.invalidateSize()
+            console.log('地圖尺寸已刷新')
+          }
+        }
+
+        // 立即執行一次
+        forceResize()
+
+        // 延遲執行多次，確保在不同時機都能正確調整
+        setTimeout(forceResize, 50)
+        setTimeout(forceResize, 150)
+        setTimeout(forceResize, 300)
+        setTimeout(forceResize, 500)
+
+        // 監聽視窗尺寸變化
+        const handleResize = () => {
+          if (map.value) {
+            map.value.invalidateSize()
+          }
+        }
+        window.addEventListener('resize', handleResize)
+
+        // 清理函數
+        const cleanup = () => {
+          window.removeEventListener('resize', handleResize)
+        }
+
+        await new Promise((resolve) => {
+          tileLayer.on('load', () => {
+            // 圖層載入完成後再次刷新尺寸
+            setTimeout(forceResize, 100)
+            resolve()
+          })
+          // 超時保護
+          setTimeout(() => {
+            forceResize()
+            resolve()
+          }, 2000)
+        })
+
+        console.log('地圖初始化完成')
+        mapState.value = 'ready'
+
+        // 如果有數據，立即添加標記
+        if (hasValidData.value) {
+          await nextTick()
+          addMarkers()
+        }
+
       } catch (error) {
         console.error('地圖初始化失敗:', error)
-        hasError.value = true
-        errorMessage.value = error.message
-        isLoading.value = false
+        mapState.value = 'error'
+        errorMessage.value = error.message || '地圖載入失敗'
       }
     }
 
-    // 清除所有標記
-    function clearMarkers() {
-      markers.value.forEach(marker => {
-        map.value.removeLayer(marker)
-      })
-      markers.value = []
-    }
-
-    // 創建自定義圖標
-    function createCustomIcon(type) {
-      const iconConfig = {
-        current: { color: '#FF5722', icon: '🚛', size: 32 },
-        home: { color: '#4CAF50', icon: '📍', size: 28 },
-        route: { color: '#2196F3', icon: '●', size: 24 }
+    // 添加標記
+    function addMarkers() {
+      if (!map.value || !hasValidData.value) {
+        console.log('無法添加標記：地圖未準備或無數據')
+        return
       }
 
-      const config = iconConfig[type] || iconConfig.route
+      try {
+        console.log('開始添加標記...')
 
-      return L.divIcon({
-        html: `
-          <div style="
-            background-color: ${config.color};
-            width: ${config.size}px;
-            height: ${config.size}px;
-            border-radius: 50%;
-            border: 2px solid white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: ${config.size * 0.5}px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-          ">${config.icon}</div>
-        `,
-        className: 'custom-div-icon',
-        iconSize: [config.size, config.size],
-        iconAnchor: [config.size/2, config.size/2]
-      })
-    }
+        // 清理舊標記
+        if (markersLayer.value) {
+          map.value.removeLayer(markersLayer.value)
+        }
 
-    // 添加標記到地圖
-    function addMarkersToMap() {
-      if (!map.value || !props.routeData.points?.point) return
+        markersLayer.value = L.layerGroup()
+        const bounds = L.latLngBounds()
+        let validMarkerCount = 0
 
-      clearMarkers()
+        const points = Array.isArray(props.routeData.points.point)
+          ? props.routeData.points.point
+          : [props.routeData.points.point]
 
-      const points = Array.isArray(props.routeData.points.point)
-        ? props.routeData.points.point
-        : [props.routeData.points.point]
-
-      const group = new L.FeatureGroup()
-
-      points.forEach((point, index) => {
-        const lat = parseFloat(point.latitude?.['#text'] || point.latitude || 0)
-        const lng = parseFloat(point.longitude?.['#text'] || point.longitude || 0)
-
-        if (lat === 0 || lng === 0) return
-
-        const pointId = parseInt(point.id?.['#text'] || point.id || 0)
-        const pointName = point.name?.['#text'] || point.name || `站點 ${index + 1}`
-        const schedule = point.schedule?.['#text'] || point.schedule || '時程未定'
-
-        // 判斷標記類型
-        let iconType, markerTitle
         const homePointId = parseInt(props.homePoint.id?.['#text'] || props.homePoint.id || 0)
         const arrivalPointId = parseInt(props.arrivalPoint.id?.['#text'] || props.arrivalPoint.id || 0)
 
-        if (pointId === arrivalPointId) {
-          iconType = 'current'
-          markerTitle = `🚛 垃圾車目前位置 - ${pointName}`
-        } else if (pointId === homePointId) {
-          iconType = 'home'
-          markerTitle = `📍 監看點 - ${pointName}`
-        } else {
-          iconType = 'route'
-          markerTitle = `站點 ${index + 1} - ${pointName}`
-        }
+        points.forEach((point, index) => {
+          const lat = parseFloat(point.latitude?.['#text'] || point.latitude || 0)
+          const lng = parseFloat(point.longitude?.['#text'] || point.longitude || 0)
 
-        const marker = L.marker([lat, lng], {
-          icon: createCustomIcon(iconType),
-          title: markerTitle
+          if (lat === 0 || lng === 0) return
+
+          const pointId = parseInt(point.id?.['#text'] || point.id || 0)
+          const pointName = point.name?.['#text'] || point.name || `站點 ${index + 1}`
+          const schedule = point.schedule?.['#text'] || point.schedule || '時程未定'
+
+          // 創建標記
+          let color, title, size
+          if (pointId === arrivalPointId) {
+            color = '#FF5722'
+            title = `🚛 垃圾車目前位置 - ${pointName}`
+            size = 12
+          } else if (pointId === homePointId) {
+            color = '#4CAF50'
+            title = `📍 監看點 - ${pointName}`
+            size = 10
+          } else {
+            color = '#2196F3'
+            title = `站點 ${index + 1} - ${pointName}`
+            size = 8
+          }
+
+          const marker = L.circleMarker([lat, lng], {
+            radius: size,
+            fillColor: color,
+            color: 'white',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+          })
+
+          // 彈出視窗
+          const popupContent = `
+            <div style="padding: 8px; min-width: 200px;">
+              <div style="font-weight: bold; margin-bottom: 4px;">${title}</div>
+              <div><strong>編號:</strong> ${pointId}</div>
+              <div><strong>時程:</strong> ${schedule}</div>
+              <div><strong>順序:</strong> 第 ${point.rank?.['#text'] || point.rank || index + 1} 站</div>
+              <div style="color: #666; font-size: 12px; margin-top: 4px;">
+                座標: ${lat.toFixed(6)}, ${lng.toFixed(6)}
+              </div>
+            </div>
+          `
+
+          marker.bindPopup(popupContent)
+          markersLayer.value.addLayer(marker)
+          bounds.extend([lat, lng])
+          validMarkerCount++
         })
 
-        // 添加彈出視窗
-        const popupContent = `
-          <div style="padding: 8px; min-width: 200px;">
-            <div style="font-weight: bold; margin-bottom: 4px;">${markerTitle}</div>
-            <div style="margin-bottom: 2px;"><strong>編號:</strong> ${pointId}</div>
-            <div style="margin-bottom: 2px;"><strong>時程:</strong> ${schedule}</div>
-            <div style="margin-bottom: 2px;"><strong>順序:</strong> 第 ${point.rank?.['#text'] || point.rank || index + 1} 站</div>
-            <div style="color: #666; font-size: 12px;">
-              座標: ${lat.toFixed(6)}, ${lng.toFixed(6)}
-            </div>
-          </div>
-        `
+        if (validMarkerCount > 0) {
+          markersLayer.value.addTo(map.value)
 
-        marker.bindPopup(popupContent)
-        marker.addTo(map.value)
-        markers.value.push(marker)
-        group.addLayer(marker)
-      })
+          // 調整視野
+          requestAnimationFrame(() => {
+            if (map.value && bounds.isValid()) {
+              map.value.fitBounds(bounds, {
+                padding: [20, 20],
+                maxZoom: 16
+              })
+            }
+          })
 
-      // 調整地圖視野以包含所有標記
-      if (markers.value.length > 0) {
-        map.value.fitBounds(group.getBounds(), { padding: [20, 20] })
+          console.log(`成功添加 ${validMarkerCount} 個標記`)
+        }
+
+      } catch (error) {
+        console.error('添加標記失敗:', error)
       }
     }
 
-    // 監聽路線數據變化
+    // 重試初始化
+    function retryInit() {
+      console.log('重試初始化地圖...')
+      initMap()
+    }
+
+    // 監聽數據變化
     watch(() => [props.routeData, props.homePoint, props.arrivalPoint], () => {
-      if (map.value) {
-        addMarkersToMap()
+      console.log('數據變化，更新標記...')
+      if (mapState.value === 'ready') {
+        addMarkers()
       }
     }, { deep: true })
 
-    onMounted(() => {
+    // 生命週期
+    onMounted(async () => {
+      console.log('組件掛載，開始初始化...')
+      // 延遲一點確保 DOM 穩定
+      await new Promise(resolve => setTimeout(resolve, 50))
       initMap()
     })
 
     onUnmounted(() => {
+      console.log('組件卸載，清理地圖...')
       if (map.value) {
         map.value.remove()
+        map.value = null
       }
     })
 
     return {
-      isLoading,
-      hasError,
+      mapContainer,
+      mapState,
       errorMessage,
-      initMap
+      hasValidData,
+      retryInit
     }
   }
 })
@@ -298,6 +456,7 @@ export default defineComponent({
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
 }
 
 .map-header {
@@ -308,15 +467,18 @@ export default defineComponent({
 .map-wrapper {
   position: relative;
   height: 400px;
+  width: 100%;
 }
 
 .leaflet-map {
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: #f8f9fa;
+  position: relative;
+  z-index: 1;
 }
 
-.map-loading,
-.map-error {
+.map-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -326,8 +488,9 @@ export default defineComponent({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.95);
   z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
 .map-legend {
@@ -379,6 +542,47 @@ export default defineComponent({
   }
 }
 
+/* 修復 Leaflet 樣式問題 */
+:deep(.leaflet-container) {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative;
+  outline: 0;
+}
 
+:deep(.leaflet-map-pane) {
+  position: absolute;
+}
+
+:deep(.leaflet-tile-container) {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  outline: 0;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+:deep(.leaflet-tile) {
+  filter: inherit;
+  visibility: inherit;
+  opacity: 1;
+  width: 256px !important;
+  height: 256px !important;
+}
+
+/* 確保地圖控制項正常顯示 */
+:deep(.leaflet-control-container) {
+  pointer-events: none;
+}
+
+:deep(.leaflet-control) {
+  pointer-events: auto;
+}
+
+:deep(.leaflet-control-attribution) {
+  font-size: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  pointer-events: auto;
+}
 </style>
-
