@@ -103,6 +103,10 @@ export default defineComponent({
         lat: 24.9896,
         lng: 121.4953
       })
+    },
+    highlightPoint: {
+      type: Object,
+      default: null
     }
   },
 
@@ -112,6 +116,10 @@ export default defineComponent({
     const errorMessage = ref('')
     const map = ref(null)
     const markersLayer = ref(null)
+    const highlightMarker = ref(null)
+
+    // 輔助函數：提取值
+    const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
 
     // 檢查是否有有效數據
     const hasValidData = computed(() => {
@@ -119,6 +127,77 @@ export default defineComponent({
              Array.isArray(props.routeData.points.point) &&
              props.routeData.points.point.length > 0
     })
+
+    // 高亮顯示特定點
+    function highlightSpecificPoint(pointData) {
+      if (!map.value || !pointData || !pointData.point) {
+        console.log('無法高亮點：地圖未準備或點數據無效')
+        return
+      }
+
+      try {
+        // 清除之前的高亮標記
+        if (highlightMarker.value) {
+          map.value.removeLayer(highlightMarker.value)
+        }
+
+        const point = pointData.point
+        const lat = parseFloat(unwrap(point.latitude) || 0)
+        const lng = parseFloat(unwrap(point.longitude) || 0)
+
+        if (lat === 0 || lng === 0) {
+          console.log('點的座標無效:', lat, lng)
+          return
+        }
+
+        console.log('高亮顯示點:', pointData.title, lat, lng)
+
+        // 創建高亮標記 - 使用不同的樣式突出顯示
+        highlightMarker.value = new L.CircleMarker([lat, lng], {
+          radius: 15,
+          fillColor: '#FFD700', // 金黃色
+          color: '#FF6B00',     // 橙色邊框
+          weight: 3,
+          opacity: 1,
+          fillOpacity: 0.8,
+          className: 'highlight-marker'
+        })
+
+        // 彈出視窗內容
+        const popupContent = `
+          <div style="padding: 10px; min-width: 220px;">
+            <div style="font-weight: bold; margin-bottom: 6px; color: #FF6B00;">
+              ${pointData.title || '特別標記點'}
+            </div>
+            <div><strong>名稱:</strong> ${unwrap(point.name) || '未命名'}</div>
+            <div><strong>編號:</strong> ${unwrap(point.id) || 'N/A'}</div>
+            <div><strong>時程:</strong> ${unwrap(point.schedule) || '時程未定'}</div>
+            <div><strong>順序:</strong> 第 ${unwrap(point.rank) || 'N/A'} 站</div>
+            ${pointData.description ? `<div style="margin-top: 6px; color: #666;"><strong>說明:</strong> ${pointData.description}</div>` : ''}
+            <div style="color: #666; font-size: 12px; margin-top: 6px;">
+              座標: ${lat.toFixed(6)}, ${lng.toFixed(6)}
+            </div>
+          </div>
+        `
+
+        // 綁定彈出視窗並立即顯示
+        highlightMarker.value.bindPopup(popupContent).openPopup()
+
+        // 添加到地圖
+        map.value.addLayer(highlightMarker.value)
+
+        // 將地圖中心移到該點並調整縮放
+        map.value.setView([lat, lng], 16, {
+          animate: true,
+          duration: 1
+        })
+
+        console.log('高亮標記添加成功')
+
+      } catch (error) {
+        console.error('高亮顯示點失敗:', error)
+      }
+    }
 
     // 初始化地圖
     async function initMap() {
@@ -278,6 +357,14 @@ export default defineComponent({
       }
     }, { deep: true })
 
+    // 監聽高亮點變化
+    watch(() => props.highlightPoint, (newHighlightPoint) => {
+      if (newHighlightPoint && mapState.value === 'ready') {
+        console.log('接收到高亮點請求:', newHighlightPoint)
+        highlightSpecificPoint(newHighlightPoint)
+      }
+    }, { deep: true })
+
     // 生命週期
     onMounted(async () => {
       console.log('組件掛載，開始初始化...')
@@ -299,7 +386,8 @@ export default defineComponent({
       mapState,
       errorMessage,
       hasValidData,
-      retryInit
+      retryInit,
+      highlightSpecificPoint
     }
   }
 })

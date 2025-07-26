@@ -30,7 +30,8 @@
         :home-map="homeMap"
         :data-placemap="dataPlacemap"
         :total-stations="29"
-        :show-map-links="false"
+        :show-map-links="true"
+        @show-home-point-on-map="handleShowHomePointOnMap"
       />
     </div>
 
@@ -59,6 +60,7 @@
             :home-point="homePoint"
             :arrival-point="arrivalPoint"
             :center-location="getCenterLocation()"
+            :highlight-point="highlightPoint"
           />
         </div>
 
@@ -175,8 +177,28 @@ export default defineComponent({
 
   setup(props) {
     const expanded = ref(false)
+    const highlightPoint = ref(null)
 
+    // 輔助函數：提取值
     const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
+
+    // 處理顯示監看點在地圖上的事件
+    const handleShowHomePointOnMap = (pointData) => {
+      console.log('RoutePanel 接收到顯示監看點請求:', pointData)
+
+      // 如果詳細資訊區域未展開，先展開它
+      if (!expanded.value) {
+        expanded.value = true
+      }
+
+      // 設置高亮點數據
+      highlightPoint.value = pointData
+
+      // 延遲一點確保地圖已渲染
+      setTimeout(() => {
+        highlightPoint.value = { ...pointData, timestamp: Date.now() }
+      }, 300)
+    }
 
     const hasMapLinks = computed(() => {
       return !!(props.arrivalMap || props.homeMap || props.dataPlacemap)
@@ -258,6 +280,8 @@ export default defineComponent({
 
     return {
       expanded,
+      highlightPoint,
+      handleShowHomePointOnMap,
       hasMapLinks,
       hasStations,
       getQuickStatusColor,

@@ -58,30 +58,6 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- 地圖按鈕 -->
-                <div class="station-actions q-mt-xs" v-if="hasValidCoordinates(station)">
-                  <q-btn
-                    flat
-                    dense
-                    size="xs"
-                    icon="map"
-                    color="primary"
-                    @click="openMap(station)"
-                    class="full-width"
-                    style="min-height: 18px; font-size: 0.6rem;"
-                    :aria-label="'查看地圖位置'"
-                  >
-                    <q-tooltip
-                      anchor="top middle"
-                      self="bottom middle"
-                      :delay="500"
-                      class="bg-grey-8"
-                    >
-                      查看地圖位置
-                    </q-tooltip>
-                  </q-btn>
-                </div>
               </q-card-section>
             </q-card>
           </div>
@@ -272,28 +248,6 @@ export default defineComponent({
   gap: 1px;
 }
 
-.time-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.time-label {
-  font-size: 0.65rem;
-  color: #6c757d;
-}
-
-.time-value {
-  font-size: 0.7rem;
-  font-weight: 500;
-}
-
-.station-actions {
-  border-top: 1px solid #e0e0e0;
-  padding-top: 2px;
-  margin-top: 4px;
-}
-
 .time-compact {
   display: flex;
   justify-content: space-between;
@@ -326,7 +280,7 @@ export default defineComponent({
     font-size: 0.7rem;
   }
 
-  .time-label, .time-value {
+  .schedule-time, .arrival-time {
     font-size: 0.6rem;
   }
 }

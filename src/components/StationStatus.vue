@@ -115,8 +115,7 @@
             outline
             icon="home"
             label="監看點位置"
-            :href="homeMap"
-            target="_blank"
+            @click="showHomePointOnMap"
             no-caps
           />
         </div>
@@ -142,6 +141,8 @@ import { defineComponent, computed } from 'vue'
 
 export default defineComponent({
   name: 'StationStatus',
+
+  emits: ['show-home-point-on-map'],
 
   props: {
     homePoint: {
@@ -178,8 +179,19 @@ export default defineComponent({
     }
   },
 
-  setup(props) {
+  setup(props, { emit }) {
     const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
+
+    // 顯示監看點在地圖上
+    const showHomePointOnMap = () => {
+      console.log('顯示監看點在地圖上:', props.homePoint)
+      emit('show-home-point-on-map', {
+        point: props.homePoint,
+        type: 'home',
+        title: `監看點 - ${unwrap(props.homePoint.name)}`,
+        description: `時程: ${unwrap(props.homePoint.schedule)}`
+      })
+    }
 
     // 計算進度百分比
     const progressValue = computed(() => {
@@ -222,7 +234,8 @@ export default defineComponent({
       unwrap,
       progressValue,
       currentLocationLabel,
-      formatArrivalDisplay
+      formatArrivalDisplay,
+      showHomePointOnMap
     }
   }
 })
