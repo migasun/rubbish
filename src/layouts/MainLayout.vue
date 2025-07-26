@@ -25,6 +25,12 @@
         <q-item v-for="w in watchers" :key="w.lineParam + w.homeId">
           <q-item-section>{{ w.label || w.lineParam }} - {{ w.homeId }}</q-item-section>
         </q-item>
+        <q-item>
+          <q-input v-model.number="line24HomeId" label="line24 id" type="number" dense />
+        </q-item>
+        <q-item>
+          <q-input v-model.number="line60HomeId" label="line60 id" type="number" dense />
+        </q-item>
         <q-separator class="q-my-md" />
         <q-item-label header>新增監看點</q-item-label>
         <q-item>
@@ -46,7 +52,7 @@
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, watch } from 'vue'
 import { useWatchersStore } from 'src/stores/watchers'
 
 export default defineComponent({
@@ -57,6 +63,8 @@ export default defineComponent({
     const watchersStore = useWatchersStore()
     const newLineParam = ref('')
     const newHomeId = ref('')
+    const line24HomeId = ref(watchersStore.watchers[0].homeId)
+    const line60HomeId = ref(watchersStore.watchers[1].homeId)
 
     function addWatcher () {
       if (newLineParam.value && newHomeId.value) {
@@ -66,10 +74,19 @@ export default defineComponent({
       }
     }
 
+    watch(line24HomeId, (id) => {
+      if (id) watchersStore.updateWatcher('line24', parseInt(id))
+    })
+    watch(line60HomeId, (id) => {
+      if (id) watchersStore.updateWatcher('line60', parseInt(id))
+    })
+
     return {
       watchers: watchersStore.watchers,
       newLineParam,
       newHomeId,
+      line24HomeId,
+      line60HomeId,
       addWatcher,
       leftDrawerOpen,
       toggleLeftDrawer () {

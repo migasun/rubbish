@@ -11,5 +11,12 @@ export const useWatchersStore = defineStore('watchers', () => {
     watchers.value.push({ lineParam, homeId })
   }
 
-  return { watchers, addWatcher }
+  function updateWatcher(lineParam, homeId) {
+    const target = watchers.value.find(w => w.lineParam === lineParam)
+    if (target) {
+      target.homeId = homeId
+    }
+  }
+
+  return { watchers, addWatcher, updateWatcher }
 })
