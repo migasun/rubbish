@@ -63,6 +63,8 @@
 import { defineComponent, ref, onMounted, watch, nextTick, onUnmounted, computed } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+// 導入 Leaflet 樣式修復
+import '../css/leaflet-fixes.scss'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
@@ -394,54 +396,5 @@ export default defineComponent({
   }
 }
 
-/* 修復 Leaflet 樣式問題 - 這些選擇器在運行時由 Leaflet 動態創建 */
-/* stylelint-disable-next-line selector-class-pattern */
-:deep(.leaflet-container) {
-  width: 100% !important;
-  height: 100% !important;
-  position: relative;
-  outline: 0;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-:deep(.leaflet-map-pane) {
-  position: absolute;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-:deep(.leaflet-tile-container) {
-  margin: 0;
-  border: 0;
-  padding: 0;
-  outline: 0;
-  max-width: none !important;
-  max-height: none !important;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-:deep(.leaflet-tile) {
-  filter: inherit;
-  visibility: inherit;
-  opacity: 1;
-  width: 256px !important;
-  height: 256px !important;
-}
-
-/* 確保地圖控制項正常顯示 */
-/* stylelint-disable-next-line selector-class-pattern */
-:deep(.leaflet-control-container) {
-  pointer-events: none;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-:deep(.leaflet-control) {
-  pointer-events: auto;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-:deep(.leaflet-control-attribution) {
-  font-size: 10px;
-  background-color: rgba(255, 255, 255, 0.8);
-  pointer-events: auto;
-}
+/* Leaflet 樣式修復已移至 src/css/leaflet-fixes.scss */
 </style>
