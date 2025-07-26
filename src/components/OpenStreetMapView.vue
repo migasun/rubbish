@@ -394,7 +394,7 @@ export default defineComponent({
   }
 }
 
-/* 修復 Leaflet 樣式問題 */
+/* 修復 Leaflet 樣式問題 - 這些選擇器在運行時由 Leaflet 動態創建 */
 :deep(.leaflet-container) {
   width: 100% !important;
   height: 100% !important;
