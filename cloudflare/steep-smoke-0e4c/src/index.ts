@@ -15,21 +15,36 @@ async function handleRequest(request: Request): Promise<Response> {
       },
     });
   }
+
   const { searchParams } = new URL(request.url);
   const line24Id = searchParams.get('line24');
   const line60Id = searchParams.get('line60');
+  const lineId = searchParams.get('lineId'); // 新增通用 lineId 參數
+
   const isLine24 = line24Id !== null;
   const isLine60 = line60Id !== null;
-  console.log('Request params', { line24Id, line60Id });
+  const hasLineId = lineId !== null;
+
+  console.log('Request params', { line24Id, line60Id, lineId });
+
   let url = '';
-  if (isLine24) {
-    url = 'https://crd-rubbish.epd.ntpc.gov.tw/dispProject/api/line-status.ashx?lineid=235024';
+  let targetLineId = '';
+
+  // 優先處理通用 lineId 參數
+  if (hasLineId) {
+    targetLineId = lineId;
+  } else if (isLine24) {
+    targetLineId = '235024'; // 預設的 line24 ID
+  } else if (isLine60) {
+    targetLineId = '235060'; // 預設的 line60 ID
   }
-  if (isLine60) {
-    url = 'https://crd-rubbish.epd.ntpc.gov.tw/dispProject/api/line-status.ashx?lineid=235060';
+
+  if (targetLineId) {
+    url = `https://crd-rubbish.epd.ntpc.gov.tw/dispProject/api/line-status.ashx?lineid=${targetLineId}`;
   }
+
   if (!url) {
-    return new Response('Missing query', {
+    return new Response('Missing query parameter. Use ?lineId=XXXXX or ?line24=1 or ?line60=1', {
       status: 400,
       headers: { 'Access-Control-Allow-Origin': '*' },
     });
