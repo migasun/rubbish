@@ -301,15 +301,16 @@ export default defineComponent({
 <style scoped>
 .route-panel-container {
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 8px; /* 從 12px 減少 */
   overflow: hidden;
+  margin-bottom: 8px; /* 添加組件間距但保持緊湊 */
 }
 
 .route-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 12px 16px; /* 從 16px 20px 減少 */
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-bottom: 1px solid #dee2e6;
 }
@@ -325,63 +326,96 @@ export default defineComponent({
 }
 
 .main-status-area {
-  padding: 20px;
+  padding: 12px; /* 從 20px 大幅減少 */
   background: #ffffff;
 }
 
 .expand-section {
-  padding: 12px 20px;
+  padding: 8px 16px; /* 從 12px 20px 減少 */
   background: #f8f9fa;
   border-top: 1px solid #dee2e6;
 }
 
 .detailed-info {
-  padding: 20px;
+  padding: 12px; /* 從 20px 大幅減少 */
   background: #fafbfc;
   border-top: 1px solid #dee2e6;
 }
 
 .section-title {
-  font-size: 1rem;
+  font-size: 0.95rem; /* 從 1rem 略減 */
   font-weight: 600;
   color: #495057;
-  margin-bottom: 12px;
-  padding-bottom: 6px;
+  margin-bottom: 8px; /* 從 12px 減少 */
+  padding-bottom: 4px; /* 從 6px 減少 */
   border-bottom: 2px solid #e9ecef;
 }
 
 .map-section {
-  margin-bottom: 24px;
+  margin-bottom: 16px; /* 從 24px 減少 */
 }
 
 .map-links-section {
-  margin-bottom: 24px;
+  margin-bottom: 16px; /* 從 24px 減少 */
 }
 
 .map-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px; /* 從 8px 略減 */
 }
 
 .stations-section {
   /* 站點區域不需要額外樣式，StationsList 組件會處理 */
 }
 
-/* 響應式設計 */
+/* 響應式設計 - 手機端進一步優化 */
 @media (max-width: 600px) {
+  .route-panel-container {
+    border-radius: 6px;
+    margin-bottom: 6px;
+  }
+
   .route-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px; /* 從 12px 減少 */
+    padding: 10px 12px; /* 進一步減少 */
   }
 
   .quick-status {
     align-self: stretch;
   }
 
+  .main-status-area {
+    padding: 8px; /* 手機端進一步減少 */
+  }
+
+  .expand-section {
+    padding: 6px 12px;
+  }
+
+  .detailed-info {
+    padding: 8px;
+  }
+
+  .section-title {
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    padding-bottom: 3px;
+  }
+
+  .map-section {
+    margin-bottom: 12px;
+  }
+
+  .map-links-section {
+    margin-bottom: 12px;
+  }
+
   .map-buttons {
     justify-content: center;
+    gap: 4px;
   }
 }
 </style>

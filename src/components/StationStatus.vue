@@ -244,27 +244,27 @@ export default defineComponent({
 <style scoped>
 .station-status {
   width: 100%;
-  padding: 16px;
+  padding: 12px; /* 從 16px 減少到 12px */
   background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 8px; /* 從 12px 減少到 8px */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08); /* 減少陰影 */
 }
 
 .status-info {
-  margin-bottom: 12px;
+  margin-bottom: 8px; /* 從 12px 減少到 8px */
 }
 
 .point-name {
-  font-size: 1.1em;
+  font-size: 1em; /* 從 1.1em 減少 */
   font-weight: 600;
   color: #2c3e50;
-  margin-bottom: 8px;
+  margin-bottom: 6px; /* 從 8px 減少到 6px */
 }
 
 .schedule-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px; /* 從 8px 減少到 6px */
   flex-wrap: wrap;
 }
 
@@ -274,13 +274,13 @@ export default defineComponent({
 }
 
 .station-progress {
-  min-height: 60px;
+  min-height: 50px; /* 從 60px 減少到 50px */
 }
 
 .status-badge {
   display: flex;
   justify-content: center;
-  margin: 16px 0;
+  margin: 12px 0; /* 從 16px 減少到 12px */
 }
 
 .pulse {
@@ -303,18 +303,18 @@ export default defineComponent({
 }
 
 .progress-container {
-  max-width: 300px;
+  max-width: 280px; /* 從 300px 減少 */
   margin: 0 auto;
 }
 
 .progress-bar {
-  border-radius: 10px;
+  border-radius: 8px; /* 從 10px 減少 */
   overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); /* 減少陰影 */
 }
 
 .progress-label {
-  font-size: 0.85em;
+  font-size: 0.8em; /* 從 0.85em 減少 */
   font-weight: 600;
 }
 
@@ -322,29 +322,48 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   color: #6c757d;
-  font-size: 0.8em;
+  font-size: 0.75em; /* 從 0.8em 減少 */
 }
 
 .map-links {
   border-top: 1px solid #dee2e6;
-  padding-top: 12px;
+  padding-top: 8px; /* 從 12px 減少到 8px */
 }
 
-/* 響應式設計 */
+/* 響應式設計 - 手機端進一步優化 */
 @media (max-width: 600px) {
   .station-status {
-    padding: 12px;
+    padding: 8px; /* 手機端進一步減少到 8px */
+    border-radius: 6px;
+  }
+
+  .point-name {
+    font-size: 0.95em;
+    margin-bottom: 4px;
   }
 
   .schedule-info {
     flex-direction: column;
     align-items: flex-start;
+    gap: 4px;
   }
 
   .progress-details {
     flex-direction: column;
     text-align: center;
-    gap: 4px;
+    gap: 2px;
+  }
+
+  .progress-container {
+    max-width: 250px;
+  }
+
+  .station-progress {
+    min-height: 40px;
+  }
+
+  .map-links {
+    padding-top: 6px;
   }
 }
 </style>

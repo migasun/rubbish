@@ -71,7 +71,7 @@
               <q-tab name="noon" label="🌞 中午清運" class="route-tab" />
               <q-tab name="evening" label="🌙 晚上清運" class="route-tab" />
               <q-tab
-                v-for="(_w, idx) in extraWatchers"
+                v-for="(watcher, idx) in extraWatchers"
                 :key="`extra-${idx}`"
                 :name="`extra-${idx}`"
                 :label="getExtraTabLabel(idx)"
@@ -705,25 +705,26 @@ export default defineComponent({
   /* 背景色和字體顏色 */
   background-color: #f4f4f9;
   color: #333;
+  padding: 0; /* 移除頁面級別的默認 padding */
 }
 
 .page-container {
-  /* 容器樣式 */
+  /* 容器樣式 - 大幅減少間距 */
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 8px; /* 從 16px 減少到 8px */
 }
 
 .status-overview {
   /* 頂部狀態卡片樣式 */
-  margin-bottom: 24px;
+  margin-bottom: 12px; /* 從 24px 大幅減少到 12px */
 }
 
 .status-card {
   /* 狀態卡片內部樣式 */
   background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 6px; /* 從 8px 減少 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* 減少陰影 */
 }
 
 .service-status {
@@ -736,31 +737,31 @@ export default defineComponent({
 
 .status-text {
   /* 狀態文字樣式 */
-  margin-top: 8px;
+  margin-top: 6px; /* 從 8px 減少 */
 }
 
 .main-routes {
   /* 主要監看路線區域樣式 */
   background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 16px;
+  border-radius: 6px; /* 從 8px 減少 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* 減少陰影 */
+  padding: 8px; /* 從 16px 大幅減少到 8px */
 }
 
 .route-tabs {
   /* 路線選項卡樣式 */
-  margin-bottom: 16px;
+  margin-bottom: 8px; /* 從 16px 減少到 8px */
 }
 
 .route-tab-container {
   /* 選項卡容器樣式 */
   background-color: #f9f9f9;
-  border-radius: 8px;
+  border-radius: 6px; /* 從 8px 略減 */
 }
 
 .route-tab {
   /* 單個選項卡樣式 */
-  border-radius: 8px;
+  border-radius: 6px; /* 從 8px 略減 */
 }
 
 .route-panels {
@@ -770,8 +771,8 @@ export default defineComponent({
 
 .route-panel {
   /* 單個路線面板樣式 */
-  padding: 16px;
-  border-top: 1px solid #e0e0e0;
+  padding: 0; /* 移除內邊距，讓子組件自己控制 */
+  border-top: none; /* 移除邊框，減少視覺干擾 */
 }
 
 .route-panel:first-child {
@@ -783,58 +784,77 @@ export default defineComponent({
   /* 下拉刷新提示樣式 */
   position: relative;
   overflow: hidden;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 8px; /* 從 12px 減少 */
+  border-radius: 6px; /* 從 8px 略減 */
   background-color: #f1f8e9;
-  margin-bottom: 16px;
-}
-
-.refresh-hint q-icon {
-  /* 下拉刷新提示圖示樣式 */
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.refresh-hint small {
-  /* 下拉刷新提示文字樣式 */
-  margin-left: 40px;
-  color: #666;
+  margin-bottom: 8px; /* 從 16px 減少 */
 }
 
 .auto-reload-progress {
   /* 自動重新載入進度條樣式 */
-  margin-bottom: 16px;
+  margin-bottom: 8px; /* 減少間距 */
 }
 
 .progress-card {
-  /* 進度卡片樣式 */
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  /* 進度條卡片樣式 */
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
+/* 手機端進一步優化 */
+@media (max-width: 600px) {
+  .page-container {
+    padding: 4px; /* 手機端進一步減少到 4px */
+  }
+
+  .status-overview {
+    margin-bottom: 8px; /* 手機端進一步減少 */
+  }
+
+  .main-routes {
+    padding: 4px; /* 手機端進一步減少 */
+  }
+
+  .route-tabs {
+    margin-bottom: 4px; /* 手機端進一步減少 */
+  }
+
+  .refresh-hint {
+    padding: 6px;
+    margin-bottom: 6px;
+  }
+}
+
+/* 移除 Quasar 默認的過大間距 */
+.q-page {
+  padding: 0 !important;
+}
+
+/* 優化 q-tab-panels 的間距 */
+.q-tab-panels {
+  background: transparent !important;
+}
+
+.q-tab-panel {
+  padding: 0 !important;
+}
+
+/* 優化 q-card 的默認間距 */
+.q-card + .q-card {
+  margin-top: 8px; /* 卡片間的間距 */
+}
+
+/* 優化進度條區域 */
 .progress-content {
-  /* 進度內容區域樣式 */
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .progress-info {
-  /* 進度資訊樣式 */
   display: flex;
   align-items: center;
-}
-
-.progress-info q-icon {
-  /* 進度資訊圖示樣式 */
-  margin-right: 8px;
-}
-
-.q-linear-progress {
-  /* 自定義進度條樣式 */
-  border-radius: 4px;
+  justify-content: center;
+  gap: 4px;
 }
 </style>

@@ -395,20 +395,21 @@ export default defineComponent({
 
 <style scoped>
 .route-map-container {
-  border-radius: 8px;
+  border-radius: 6px; /* 從 8px 減少 */
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08); /* 減少陰影 */
   width: 100%;
 }
 
 .map-header {
   background-color: #f5f5f5;
   border-bottom: 1px solid #e0e0e0;
+  padding: 8px 12px; /* 從預設的 q-pa-md 減少 */
 }
 
 .map-wrapper {
   position: relative;
-  height: 400px;
+  height: 300px; /* 從 400px 減少 */
   width: 100%;
 }
 
@@ -438,24 +439,25 @@ export default defineComponent({
 .map-legend {
   background-color: #f9f9f9;
   border-top: 1px solid #e0e0e0;
+  padding: 8px 12px; /* 從預設的 q-pa-md 減少 */
 }
 
 .legend-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px; /* 從 16px 減少 */
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px; /* 從 8px 減少 */
+  font-size: 0.85rem; /* 從 14px 轉換並略減 */
 }
 
 .legend-marker {
-  width: 16px;
-  height: 16px;
+  width: 14px; /* 從 16px 減少 */
+  height: 14px; /* 從 16px 減少 */
   border-radius: 50%;
   border: 2px solid white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -474,13 +476,35 @@ export default defineComponent({
 }
 
 @media (max-width: 600px) {
+  .route-map-container {
+    border-radius: 4px;
+  }
+
+  .map-header {
+    padding: 6px 10px; /* 手機端進一步減少 */
+  }
+
   .map-wrapper {
-    height: 300px;
+    height: 250px; /* 手機端進一步減少高度 */
+  }
+
+  .map-legend {
+    padding: 6px 10px;
   }
 
   .legend-items {
     flex-direction: column;
-    gap: 8px;
+    gap: 6px; /* 從 8px 減少 */
+  }
+
+  .legend-item {
+    font-size: 0.8rem;
+    gap: 5px;
+  }
+
+  .legend-marker {
+    width: 12px;
+    height: 12px;
   }
 }
 

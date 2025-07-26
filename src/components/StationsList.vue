@@ -184,9 +184,9 @@ export default defineComponent({
 
 .stations-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 6px;
-  margin-top: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* 從 200px 減少 */
+  gap: 4px; /* 從 6px 減少 */
+  margin-top: 4px; /* 從 6px 減少 */
 }
 
 .station-item {
@@ -197,7 +197,7 @@ export default defineComponent({
   height: 100%;
   transition: all 0.3s ease;
   border-left: 3px solid transparent;
-  min-height: 80px;
+  min-height: 70px; /* 從 80px 減少 */
 }
 
 .current-station .station-card {
@@ -218,7 +218,7 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2px;
+  margin-bottom: 1px; /* 從 2px 減少 */
 }
 
 .station-rank {
@@ -239,7 +239,7 @@ export default defineComponent({
   font-weight: 500;
   line-height: 1.2;
   color: #2c3e50;
-  font-size: 0.75rem;
+  font-size: 0.7rem; /* 從 0.75rem 減少 */
 }
 
 .station-times {
@@ -255,13 +255,13 @@ export default defineComponent({
 }
 
 .schedule-time {
-  font-size: 0.7rem;
+  font-size: 0.65rem; /* 從 0.7rem 減少 */
   font-weight: 500;
   color: #2c3e50;
 }
 
 .arrival-time {
-  font-size: 0.7rem;
+  font-size: 0.65rem; /* 從 0.7rem 減少 */
   font-weight: 500;
 }
 
@@ -269,19 +269,19 @@ export default defineComponent({
 @media (max-width: 600px) {
   .stations-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 4px;
+    gap: 2px; /* 從 4px 進一步減少 */
   }
 
   .station-card {
-    min-height: 70px;
+    min-height: 60px; /* 從 70px 減少 */
   }
 
   .station-name {
-    font-size: 0.7rem;
+    font-size: 0.65rem; /* 從 0.7rem 減少 */
   }
 
   .schedule-time, .arrival-time {
-    font-size: 0.6rem;
+    font-size: 0.55rem; /* 從 0.6rem 減少 */
   }
 }
 
