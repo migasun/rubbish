@@ -16,9 +16,11 @@ async function handleRequest(request: Request): Promise<Response> {
     });
   }
   const { searchParams } = new URL(request.url);
-  const isLine24 = searchParams.has('line24');
-  const isLine60 = searchParams.has('line60');
-  console.log('Request params', { isLine24, isLine60 });
+  const line24Id = searchParams.get('line24');
+  const line60Id = searchParams.get('line60');
+  const isLine24 = line24Id !== null;
+  const isLine60 = line60Id !== null;
+  console.log('Request params', { line24Id, line60Id });
   let url = '';
   if (isLine24) {
     url = 'https://crd-rubbish.epd.ntpc.gov.tw/dispProject/api/line-status.ashx?lineid=235024';

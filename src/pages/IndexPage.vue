@@ -180,7 +180,7 @@ async function loadLineData({
   dataPlacemap,
   updateService
 }) {
-  const res = await axios.get(`${API_BASE_URL}?${lineParam}=true`)
+  const res = await axios.get(`${API_BASE_URL}?${lineParam}=${homeId}`)
   data.value = res.data.line
 
   const arrivalIdx = parseInt(data.value.arrival?.['#text'] ?? data.value.arrival)
