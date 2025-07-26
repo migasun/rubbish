@@ -5,8 +5,14 @@
     size="10px"
   />
   <q-page class="index-page">
-    <q-pull-to-refresh @refresh="refresh">
+    <q-pull-to-refresh @refresh="refresh" color="primary">
       <div class="page-container">
+
+        <!-- 下拉刷新提示 -->
+        <div class="refresh-hint q-pa-sm text-center" v-if="showRefreshHint">
+          <q-icon name="refresh" size="sm" color="primary" class="q-mr-xs" />
+          <small class="text-grey-7">下拉可更新垃圾車位置資訊</small>
+        </div>
 
         <!-- 頂部狀態概覽 -->
         <div class="status-overview">
@@ -48,7 +54,14 @@
             </q-tabs>
           </div>
 
-          <q-tab-panels v-model="activeTab" animated class="route-panels">
+          <q-tab-panels
+            v-model="activeTab"
+            animated
+            class="route-panels"
+            @touchstart="handleTouchStart"
+            @touchmove="handleTouchMove"
+            @touchend="handleTouchEnd"
+          >
             <!-- 中午路線 -->
             <q-tab-panel name="noon" class="route-panel">
               <RoutePanel
@@ -151,6 +164,14 @@ export default defineComponent({
     // 新增：Tab 狀態管理
     const activeTab = ref('noon');
 
+    // 新增：自動判斷當前時間應該顯示哪個 Tab
+    function getDefaultTab() {
+      const now = new Date()
+      const hour = now.getHours()
+      // 16:00 前顯示中午，16:00 後顯示晚上
+      return hour < 16 ? 'noon' : 'evening'
+    }
+
     // 新增：服務狀態顏色判斷
     function getServiceColor() {
       if (inService.value === '本日無清運' || inService.value === '停止收運') {
@@ -195,6 +216,9 @@ export default defineComponent({
     );
 
     onBeforeMount(() => {
+      // 設定預設 Tab（根據當前時間）
+      activeTab.value = getDefaultTab()
+
       // 首次初始化
       initializeExtraWatchers()
       loadData()
@@ -257,8 +281,16 @@ export default defineComponent({
 
       if (updateService) {
         const schedule = home_point.value.schedule?.['#text'] ?? home_point.value.schedule ?? ''
-        inService.value = (schedule === '本日無清運') ? '本日無清運' : null
-        inService.value = (schedule === '停止收運') ? '停止收運' : inService.value
+
+        // 修复服务状态逻辑
+        if (schedule === '本日無清運') {
+          inService.value = '本日無清運'
+        } else if (schedule === '停止收運') {
+          inService.value = '停止收運'
+        } else {
+          // 如果schedule为空或其他值，显示正常服务状态
+          inService.value = schedule || '有垃圾車'
+        }
       }
 
       // 修復 place 處理邏輯
@@ -372,6 +404,96 @@ export default defineComponent({
 
     const bar = ref(null)
 
+    // 新增：手機滑動相關
+    const touchStartX = ref(0)
+    const touchStartY = ref(0)
+    const touchEndX = ref(0)
+    const touchEndY = ref(0)
+    const isSwiping = ref(false)
+    const touchStartTime = ref(0)
+
+    // 新增：處理滑動開始
+    function handleTouchStart(e) {
+      touchStartX.value = e.touches[0].clientX
+      touchStartY.value = e.touches[0].clientY
+      touchStartTime.value = Date.now()
+      isSwiping.value = false
+    }
+
+    // 新增：處理滑動移動
+    function handleTouchMove(e) {
+      if (!touchStartX.value) return
+
+      touchEndX.value = e.touches[0].clientX
+      touchEndY.value = e.touches[0].clientY
+
+      const deltaX = Math.abs(touchEndX.value - touchStartX.value)
+      const deltaY = Math.abs(touchEndY.value - touchStartY.value)
+
+      // 只有当水平滑动距离大于垂直滑动距离且超过阈值时，才认为是滑动手势
+      if (deltaX > 20 && deltaX > deltaY * 1.5) {
+        isSwiping.value = true
+        // 阻止默认的滚动行为
+        e.preventDefault()
+      }
+    }
+
+    // 新增：處理滑動結束
+    function handleTouchEnd() {
+      const touchEndTime = Date.now()
+      const touchDuration = touchEndTime - touchStartTime.value
+
+      // 如果触摸时间太短（小于100ms）或者没有标记为滑动，则忽略
+      if (touchDuration < 100 || !isSwiping.value) {
+        resetTouchState()
+        return
+      }
+
+      const deltaX = touchEndX.value - touchStartX.value
+      const deltaY = Math.abs(touchEndY.value - touchStartY.value)
+      const minSwipeDistance = 50 // 最小滑动距离
+
+      // 确保是水平滑动且距离足够
+      if (Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaX) > deltaY) {
+        // 左滑：切換到下一個 Tab
+        if (deltaX < 0) {
+          switchToNextTab()
+        }
+        // 右滑：切換到上一個 Tab
+        else if (deltaX > 0) {
+          switchToPreviousTab()
+        }
+      }
+
+      resetTouchState()
+    }
+
+    // 新增：重置触摸状态
+    function resetTouchState() {
+      isSwiping.value = false
+      touchStartX.value = 0
+      touchStartY.value = 0
+      touchEndX.value = 0
+      touchEndY.value = 0
+      touchStartTime.value = 0
+    }
+
+    // 新增：切換到下一個 Tab
+    function switchToNextTab() {
+      const tabs = ['noon', 'evening', ...extraWatchers.value.map((_, idx) => `extra-${idx}`).filter((_, idx) => watchersStore.watchers.slice(2)[idx])]
+      const currentIndex = tabs.indexOf(activeTab.value)
+      const nextIndex = (currentIndex + 1) % tabs.length
+      activeTab.value = tabs[nextIndex]
+    }
+
+    // 新增：切換到上一個 Tab
+    function switchToPreviousTab() {
+      const tabs = ['noon', 'evening', ...extraWatchers.value.map((_, idx) => `extra-${idx}`).filter((_, idx) => watchersStore.watchers.slice(2)[idx])]
+      const currentIndex = tabs.indexOf(activeTab.value)
+      const previousIndex = currentIndex === 0 ? tabs.length - 1 : currentIndex - 1
+      activeTab.value = tabs[previousIndex]
+    }
+
     return {
       // 數據
       unwrap,
@@ -401,7 +523,13 @@ export default defineComponent({
       getServiceColor,
       getExtraTabLabel,
       refresh,
-      loadData
+      loadData,
+      // 新增：滑動相關方法
+      handleTouchStart,
+      handleTouchMove,
+      handleTouchEnd,
+      switchToNextTab,
+      switchToPreviousTab
     }
   }
 })
@@ -483,5 +611,29 @@ export default defineComponent({
 .route-panel:first-child {
   /* 第一個路線面板的特殊樣式 */
   border-top: none;
+}
+
+.refresh-hint {
+  /* 下拉刷新提示樣式 */
+  position: relative;
+  overflow: hidden;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #f1f8e9;
+  margin-bottom: 16px;
+}
+
+.refresh-hint q-icon {
+  /* 下拉刷新提示圖示樣式 */
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.refresh-hint small {
+  /* 下拉刷新提示文字樣式 */
+  margin-left: 40px;
+  color: #666;
 }
 </style>
