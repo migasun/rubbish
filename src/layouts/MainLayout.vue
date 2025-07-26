@@ -72,6 +72,26 @@
             />
           </q-item-section>
         </q-item>
+
+        <q-separator class="q-my-md" />
+
+        <q-item-label header>相關連結</q-item-label>
+        <q-item
+          clickable
+          @click="openOfficalWebsite"
+          class="external-link-item"
+        >
+          <q-item-section avatar>
+            <q-icon name="map" color="primary" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>新北垃圾車清運資訊查詢</q-item-label>
+            <q-item-label caption>官方清運路線地圖</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-icon name="open_in_new" color="grey-6" size="sm" />
+          </q-item-section>
+        </q-item>
       </q-list>
     </q-drawer>
 
@@ -328,6 +348,10 @@ export default defineComponent({
       leftDrawerOpen,
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value
+      },
+      openOfficalWebsite() {
+        // 開啟新北垃圾車清運資訊查詢官方網站
+        window.open('https://crd-rubbish.epd.ntpc.gov.tw/dispPageBox/Ntpcepd/NtpMP.aspx?ddsPageID=MAP', '_blank')
       }
     }
   }

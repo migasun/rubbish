@@ -4,8 +4,8 @@
     <div class="status-info">
       <div class="point-name">{{ unwrap(homePoint.name) }}</div>
       <div class="schedule-info">
-        <q-badge color="secondary text-h5">{{ unwrap(homePoint.schedule) }}</q-badge>
-        <span class="arrival-text">預計 </span>
+        表定<q-badge color="secondary text-h5"> {{ unwrap(homePoint.schedule) }}</q-badge>
+        <span class="arrival-text">預估</span>
         <q-badge color="secondary text-h5">{{ formatArrivalDisplay(unwrap(homePoint.arrival)) }}到達</q-badge>
       </div>
     </div>

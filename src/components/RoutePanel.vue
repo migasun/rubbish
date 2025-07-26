@@ -50,9 +50,21 @@
     <!-- 詳細資訊區域 -->
     <q-slide-transition>
       <div v-show="expanded" class="detailed-info">
+        <!-- 路線地圖區域 -->
+        <div class="map-section q-mb-md" v-if="hasStations">
+          <div class="section-title">🗺️ 路線地圖</div>
+          <OpenStreetMapView
+            :route-name="routeName"
+            :route-data="routeData"
+            :home-point="homePoint"
+            :arrival-point="arrivalPoint"
+            :center-location="getCenterLocation()"
+          />
+        </div>
+
         <!-- 地圖連結區域 -->
         <div class="map-links-section q-mb-md" v-if="hasMapLinks">
-          <div class="section-title">🗺️ 地圖連結</div>
+          <div class="section-title">🔗 外部地圖連結</div>
           <div class="map-buttons">
             <q-btn
               v-if="arrivalMap"
@@ -111,13 +123,15 @@
 import { defineComponent, ref, computed } from 'vue'
 import StationStatus from './StationStatus.vue'
 import StationsList from './StationsList.vue'
+import OpenStreetMapView from './OpenStreetMapView.vue'
 
 export default defineComponent({
   name: 'RoutePanel',
 
   components: {
     StationStatus,
-    StationsList
+    StationsList,
+    OpenStreetMapView
   },
 
   props: {
@@ -211,6 +225,37 @@ export default defineComponent({
       return parseInt(rank) || 0
     })
 
+    // 獲取地圖中心位置
+    const getCenterLocation = () => {
+      // 預設中心位置：中和中山路三段32號附近
+      const defaultCenter = {
+        lat: 24.9896,
+        lng: 121.4953
+      }
+
+      // 如果有監看點位置，使用監看點作為中心
+      if (props.homePoint?.latitude && props.homePoint?.longitude) {
+        const lat = parseFloat(props.homePoint.latitude?.['#text'] || props.homePoint.latitude || 0)
+        const lng = parseFloat(props.homePoint.longitude?.['#text'] || props.homePoint.longitude || 0)
+
+        if (lat !== 0 && lng !== 0) {
+          return { lat, lng }
+        }
+      }
+
+      // 如果有垃圾車當前位置，使用當前位置作為中心
+      if (props.arrivalPoint?.latitude && props.arrivalPoint?.longitude) {
+        const lat = parseFloat(props.arrivalPoint.latitude?.['#text'] || props.arrivalPoint.latitude || 0)
+        const lng = parseFloat(props.arrivalPoint.longitude?.['#text'] || props.arrivalPoint.longitude || 0)
+
+        if (lat !== 0 && lng !== 0) {
+          return { lat, lng }
+        }
+      }
+
+      return defaultCenter
+    }
+
     return {
       expanded,
       hasMapLinks,
@@ -222,7 +267,8 @@ export default defineComponent({
       unwrap,
       safeRouteData,
       safeStations,
-      safeCurrentArrivalRank
+      safeCurrentArrivalRank,
+      getCenterLocation
     }
   }
 })
@@ -278,6 +324,10 @@ export default defineComponent({
   margin-bottom: 12px;
   padding-bottom: 6px;
   border-bottom: 2px solid #e9ecef;
+}
+
+.map-section {
+  margin-bottom: 24px;
 }
 
 .map-links-section {
