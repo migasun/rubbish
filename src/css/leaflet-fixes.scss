@@ -1,0 +1,54 @@
+/*
+ * Leaflet 地圖組件樣式修復
+ * 這些 CSS 選擇器在運行時由 Leaflet 動態創建，IDE 可能無法識別
+ * 但它們對於地圖正確顯示是必需的
+ */
+
+/* 地圖容器基礎樣式 */
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative;
+  outline: 0;
+}
+
+/* 地圖窗格樣式 */
+.leaflet-map-pane {
+  position: absolute;
+}
+
+/* 瓦片容器樣式 */
+.leaflet-tile-container {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  outline: 0;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* 瓦片樣式 */
+.leaflet-tile {
+  filter: inherit;
+  visibility: inherit;
+  opacity: 1;
+  width: 256px !important;
+  height: 256px !important;
+}
+
+/* 控制項容器樣式 */
+.leaflet-control-container {
+  pointer-events: none;
+}
+
+/* 控制項樣式 */
+.leaflet-control {
+  pointer-events: auto;
+}
+
+/* 屬性標示樣式 */
+.leaflet-control-attribution {
+  font-size: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  pointer-events: auto;
+}

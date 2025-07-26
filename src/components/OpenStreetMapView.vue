@@ -395,6 +395,7 @@ export default defineComponent({
 }
 
 /* 修復 Leaflet 樣式問題 - 這些選擇器在運行時由 Leaflet 動態創建 */
+/* stylelint-disable-next-line selector-class-pattern */
 :deep(.leaflet-container) {
   width: 100% !important;
   height: 100% !important;
@@ -402,10 +403,12 @@ export default defineComponent({
   outline: 0;
 }
 
+/* stylelint-disable-next-line selector-class-pattern */
 :deep(.leaflet-map-pane) {
   position: absolute;
 }
 
+/* stylelint-disable-next-line selector-class-pattern */
 :deep(.leaflet-tile-container) {
   margin: 0;
   border: 0;
@@ -415,6 +418,7 @@ export default defineComponent({
   max-height: none !important;
 }
 
+/* stylelint-disable-next-line selector-class-pattern */
 :deep(.leaflet-tile) {
   filter: inherit;
   visibility: inherit;
@@ -424,14 +428,17 @@ export default defineComponent({
 }
 
 /* 確保地圖控制項正常顯示 */
+/* stylelint-disable-next-line selector-class-pattern */
 :deep(.leaflet-control-container) {
   pointer-events: none;
 }
 
+/* stylelint-disable-next-line selector-class-pattern */
 :deep(.leaflet-control) {
   pointer-events: auto;
 }
 
+/* stylelint-disable-next-line selector-class-pattern */
 :deep(.leaflet-control-attribution) {
   font-size: 10px;
   background-color: rgba(255, 255, 255, 0.8);
