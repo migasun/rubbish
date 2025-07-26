@@ -17,7 +17,7 @@
         </q-card-section>
         <q-separator></q-separator>
         <q-card-section>
-          中午<br>
+          中午 {{ unwrap(home_point24.name) }} <br>
           排班 <q-badge color="secondary text-h5" > {{ unwrap(home_point24.schedule) }}</q-badge><br>
           預計 <q-badge color="secondary text-h5" >{{ unwrap(home_point24.arrival) }}到達</q-badge><br>
 
@@ -36,7 +36,7 @@
           <br>
           <br>
 
-          {{ unwrap(home_point24.name) }}
+
           <br>
           <a v-if="arrival_map24" :href="arrival_map24" target="_blank">到達位置地圖 {{ unwrap(arrival_point24.longitude) }}/{{ unwrap(arrival_point24.latitude) }}</a><br>
           <span v-if="data24placemap">
@@ -46,7 +46,7 @@
         </q-card-section>
         <q-separator></q-separator>
         <q-card-section>
-          晚上<br>
+          晚上 {{ unwrap(home_point60.name) }} <br>
           排班 <q-badge color="secondary text-h5" > {{ unwrap(home_point60.schedule) }}</q-badge><br>
           預計 <q-badge color="secondary text-h5" >{{ unwrap(home_point60.arrival) }}到達</q-badge><br>
           <span v-if="isLate60 > 0 ">站點 <q-badge color="secondary text-h5" >離開{{isLate60}}站</q-badge></span>
@@ -70,78 +70,23 @@
         </q-card-section>
 
       </q-card>
-      <q-card class="col-12 col-md-6">
-        <q-card-section>
-          <table>
 
-            <tbody>
 
-            <tr>
-              <td><h5>晚上</h5></td>
-              <td>
-                <h6>{{ unwrap(arrival_point60.name) }}</h6>
-                預計{{ unwrap(arrival_point60.schedule) }}
-                <a v-if="arrival_map60" :href="arrival_map60" target="_blank">地圖 {{ unwrap(arrival_point60.longitude) }}/{{ unwrap(arrival_point60.latitude) }}</a>
-              </td>
-              <td>
-                <h6>({{ unwrap(home_point60.arrival) }})
-                  <br>{{ unwrap(home_point60.name) }}</h6>
-                預計{{ unwrap(home_point60.schedule) }}
-              </td>
-            </tr>
-            </tbody>
 
-          </table>
 
-        </q-card-section>
-      </q-card>
-
-      <q-card class="col-12 col-md-6">
-        <q-card-section>
-          data24
-          <JsonViewer :value="data24" copyable sort boxed show-array-index="true"/>
-          <template v-if="data24.points">
-            <q-card-section v-for="point in data24.points.point ">
-              {{ point }}
-            </q-card-section>
-          </template>
-
-        </q-card-section>
-        <q-card-section>
-          data60
-          <JsonViewer :value="data60" copyable sort boxed show-array-index />
-          <template v-if="data60.points">
-            <q-card-section v-for="point in data60.points.point ">
-              {{ point }}
-            </q-card-section>
-          </template>
-
-        </q-card-section>
-
-      </q-card>
-
-      <q-card class="col-12 col-md-6">
-      <template v-if="data60.points">
-        <q-card-section v-for="point in data60.points.point ">
-          {{ point }}
-        </q-card-section>
-      </template>
-
-      </q-card>
       </div>
     </q-pull-to-refresh>
 
     <div class="row q-col-gutter-md q-mt-md">
       <q-card v-for="(w, idx) in extraWatchers" :key="idx" class="col-12 col-md-6">
         <q-card-section>
-          監看 {{ watchersStore.watchers.slice(2)[idx].lineParam }}<br>
+          監看 {{ watchersStore.watchers.slice(2)[idx].lineParam }} {{ unwrap(w.home_point.name) }}<br>
           排班 <q-badge color="secondary">{{ unwrap(w.home_point.schedule) }}</q-badge><br>
           預計 <q-badge color="secondary">{{ unwrap(w.home_point.arrival) }}到達</q-badge><br>
           <span v-if="w.isLate > 0">站點 <q-badge color="secondary">離開{{ w.isLate }}站</q-badge></span>
           <span v-else-if="w.isLate === 0">站點 <q-badge color="secondary">到了</q-badge></span>
           <span v-else-if="w.isLate"><q-badge color="primary">還有{{ -w.isLate }}站</q-badge></span>
           <br><br>
-          {{ unwrap(w.home_point.name) }}<br>
           <a v-if="w.arrival_map" :href="w.arrival_map" target="_blank">到達位置地圖 {{ unwrap(w.arrival_point.longitude) }}/{{ unwrap(w.arrival_point.latitude) }}</a><br>
           <span v-if="w.dataPlacemap">
             GPS定位:<a :href="w.dataPlacemap" target="_blank">{{ unwrap(w.data.place) }}</a>
@@ -149,7 +94,6 @@
         </q-card-section>
       </q-card>
     </div>
-
   </q-page>
 </template>
 
