@@ -126,8 +126,7 @@
             outline
             icon="gps_fixed"
             label="GPS定位"
-            :href="dataPlacemap"
-            target="_blank"
+            @click="handleGPSLocationClick"
             no-caps
           />
         </div>
@@ -142,7 +141,7 @@ import { defineComponent, computed } from 'vue'
 export default defineComponent({
   name: 'StationStatus',
 
-  emits: ['show-home-point-on-map'],
+  emits: ['show-home-point-on-map', 'show-gps-location'],
 
   props: {
     homePoint: {
@@ -230,12 +229,20 @@ export default defineComponent({
       return arrivalText
     }
 
+    // 處理GPS定位按鈕點擊
+    const handleGPSLocationClick = () => {
+      // TODO: 實作GPS定位功能
+      console.log('GPS定位按鈕被點擊')
+      emit('show-gps-location')
+    }
+
     return {
       unwrap,
       progressValue,
       currentLocationLabel,
       formatArrivalDisplay,
-      showHomePointOnMap
+      showHomePointOnMap,
+      handleGPSLocationClick
     }
   }
 })

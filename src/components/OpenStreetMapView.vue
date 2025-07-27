@@ -276,31 +276,54 @@ export default defineComponent({
           const pointId = parseInt(point.id?.['#text'] || point.id || 0)
           const pointName = point.name?.['#text'] || point.name || `站點 ${index + 1}`
           const schedule = point.schedule?.['#text'] || point.schedule || '時程未定'
+          const rank = point.rank?.['#text'] || point.rank || (index + 1)
 
-          // 創建標記
-          let color, title, size
+          // 創建帶編號的自定義標記
+          let markerHtml, className, title
+
           if (pointId === arrivalPointId) {
-            color = '#FF5722'
+            // 垃圾車目前位置 - 使用卡車圖標
+            markerHtml = `
+              <div class="truck-marker">
+                <div class="marker-icon">🚛</div>
+                <div class="marker-number">${rank}</div>
+              </div>
+            `
+            className = 'truck-marker-container'
             title = `🚛 垃圾車目前位置 - ${pointName}`
-            size = 12
           } else if (pointId === homePointId) {
-            color = '#4CAF50'
+            // 監看點 - 使用特殊標記
+            markerHtml = `
+              <div class="home-marker">
+                <div class="marker-icon">📍</div>
+                <div class="marker-number">${rank}</div>
+              </div>
+            `
+            className = 'home-marker-container'
             title = `📍 監看點 - ${pointName}`
-            size = 10
           } else {
-            color = '#2196F3'
-            title = `站點 ${index + 1} - ${pointName}`
-            size = 8
+            // 普通站點 - 使用編號圓圈
+            markerHtml = `
+              <div class="route-marker">
+                <div class="marker-number-circle">${rank}</div>
+              </div>
+            `
+            className = 'route-marker-container'
+            title = `站點 ${rank} - ${pointName}`
           }
 
-          // leaflet@2.0.0-alpha 需要使用 new L.CircleMarker
-          const marker = new L.CircleMarker([lat, lng], {
-            radius: size,
-            fillColor: color,
-            color: 'white',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.8
+          // 創建自定義圖標
+          const customIcon = new L.DivIcon({
+            html: markerHtml,
+            className: className,
+            iconSize: [32, 40],
+            iconAnchor: [16, 40],
+            popupAnchor: [0, -40]
+          })
+
+          // 創建標記
+          const marker = new L.Marker([lat, lng], {
+            icon: customIcon
           })
 
           // 彈出視窗
@@ -309,7 +332,7 @@ export default defineComponent({
               <div style="font-weight: bold; margin-bottom: 4px;">${title}</div>
               <div><strong>編號:</strong> ${pointId}</div>
               <div><strong>時程:</strong> ${schedule}</div>
-              <div><strong>順序:</strong> 第 ${point.rank?.['#text'] || point.rank || index + 1} 站</div>
+              <div><strong>順序:</strong> 第 ${rank} 站</div>
               <div style="color: #666; font-size: 12px; margin-top: 4px;">
                 座標: ${lat.toFixed(6)}, ${lng.toFixed(6)}
               </div>
@@ -455,25 +478,7 @@ export default defineComponent({
   font-size: 0.85rem; /* 從 14px 轉換並略減 */
 }
 
-.legend-marker {
-  width: 14px; /* 從 16px 減少 */
-  height: 14px; /* 從 16px 減少 */
-  border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.legend-marker.current-location {
-  background-color: #FF5722;
-}
-
-.legend-marker.home-point {
-  background-color: #4CAF50;
-}
-
-.legend-marker.route-point {
-  background-color: #2196F3;
-}
+/* 自定義標記樣式已移至 src/css/leaflet-fixes.scss */
 
 @media (max-width: 600px) {
   .route-map-container {
@@ -505,6 +510,37 @@ export default defineComponent({
   .legend-marker {
     width: 12px;
     height: 12px;
+  }
+
+  .custom-marker {
+    width: 28px;
+    height: 36px;
+    font-size: 0.8rem;
+  }
+
+  .marker-icon {
+    font-size: 1rem;
+    top: 2px;
+  }
+
+  .marker-number {
+    font-size: 0.7rem;
+    bottom: 3px;
+    padding: 0px 3px;
+  }
+
+  .marker-number-circle {
+    width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
+    border-width: 2px;
+  }
+
+  .custom-marker::after {
+    border-left-width: 6px;
+    border-right-width: 6px;
+    border-top-width: 10px;
+    bottom: -10px;
   }
 }
 

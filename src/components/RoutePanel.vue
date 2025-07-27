@@ -32,6 +32,7 @@
         :total-stations="29"
         :show-map-links="true"
         @show-home-point-on-map="handleShowHomePointOnMap"
+        @show-gps-location="handleGPSLocation"
       />
     </div>
 
@@ -200,6 +201,36 @@ export default defineComponent({
       }, 300)
     }
 
+    // 處理GPS定位功能 - 在地圖上顯示垃圾車當前位置
+    const handleGPSLocation = () => {
+      console.log('GPS定位被點擊，顯示垃圾車當前位置')
+
+      // 如果詳細資訊區域未展開，先展開它
+      if (!expanded.value) {
+        expanded.value = true
+      }
+
+      // 查找垃圾車當前位置（arrival point）
+      if (props.arrivalPoint && props.arrivalPoint.id) {
+        const gpsPointData = {
+          title: '🚛 垃圾車GPS定位',
+          description: '垃圾車目前所在位置',
+          point: props.arrivalPoint
+        }
+
+        // 設置高亮點數據
+        highlightPoint.value = gpsPointData
+
+        // 延遲一點確保地圖已渲染
+        setTimeout(() => {
+          highlightPoint.value = { ...gpsPointData, timestamp: Date.now() }
+        }, 300)
+      } else {
+        // 如果沒有GPS數據，顯示提示
+        console.log('目前沒有GPS定位數據')
+      }
+    }
+
     const hasMapLinks = computed(() => {
       return !!(props.arrivalMap || props.homeMap || props.dataPlacemap)
     })
@@ -282,6 +313,7 @@ export default defineComponent({
       expanded,
       highlightPoint,
       handleShowHomePointOnMap,
+      handleGPSLocation,
       hasMapLinks,
       hasStations,
       getQuickStatusColor,
