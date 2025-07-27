@@ -58,8 +58,8 @@
   width: 32px !important;
   height: 32px !important;
   border-radius: 50% !important;
-  background-color: #FF5722 !important;
-  border: 3px solid white !important;
+  background-color: rgba(255, 87, 34, 0.8) !important; /* 橙紅色，80%透明度 */
+  border: 2px solid white !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
   display: flex !important;
   flex-direction: column !important;
@@ -72,8 +72,8 @@
   width: 32px !important;
   height: 32px !important;
   border-radius: 50% !important;
-  background-color: #4CAF50 !important;
-  border: 3px solid white !important;
+  background-color: rgba(33, 150, 243, 0.8) !important; /* 藍色，80%透明度 */
+  border: 2px solid white !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
   display: flex !important;
   flex-direction: column !important;
@@ -86,12 +86,27 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  position: relative !important;
+}
+
+/* 清運狀態標記樣式 */
+.route-marker.cleaned-marker .marker-number-circle {
+  background-color: rgba(76, 175, 80, 0.8) !important; /* 已清運 - 綠色 */
+}
+
+.route-marker.current-marker .marker-number-circle {
+  background-color: rgba(255, 152, 0, 0.8) !important; /* 清運中 - 橙色 */
+}
+
+.route-marker.pending-marker .marker-number-circle {
+  background-color: rgba(158, 158, 158, 0.8) !important; /* 待清運 - 灰色 */
 }
 
 .marker-icon {
   font-size: 1.1rem !important;
   z-index: 2 !important;
   line-height: 1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important; /* 添加文字陰影提高可見度 */
 }
 
 .marker-number {
@@ -101,7 +116,7 @@
   transform: translateX(-50%) !important;
   font-weight: bold !important;
   font-size: 0.65rem !important;
-  background-color: rgba(0, 0, 0, 0.8) !important;
+  background-color: rgba(0, 0, 0, 0.7) !important;
   color: white !important;
   border-radius: 4px !important;
   padding: 1px 3px !important;
@@ -114,15 +129,32 @@
   width: 28px !important;
   height: 28px !important;
   border-radius: 50% !important;
-  background-color: #2196F3 !important;
+  background-color: rgba(33, 150, 243, 0.8) !important; /* 藍色，80%透明度 */
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   font-weight: bold !important;
   font-size: 0.85rem !important;
   color: white !important;
-  border: 3px solid white !important;
+  border: 2px solid white !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important; /* 添加文字陰影 */
+}
+
+/* 狀態圖標樣式 */
+.marker-status-icon {
+  position: absolute !important;
+  top: -2px !important;
+  right: -2px !important;
+  font-size: 0.7rem !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 50% !important;
+  width: 12px !important;
+  height: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 4 !important;
 }
 
 /* 標記容器樣式 - 確保不會被覆蓋 */

@@ -52,6 +52,31 @@
     <!-- 詳細資訊區域 -->
     <q-slide-transition>
       <div v-show="expanded" class="detailed-info">
+        <!-- 時間資訊區域 -->
+        <div class="time-info-section q-mb-md">
+          <div class="section-title">⏰ 時間資訊</div>
+          <div class="time-info-grid">
+            <div class="time-info-card">
+              <div class="time-label">表定時間</div>
+              <div class="time-value scheduled-time">
+                {{ formatScheduledTime(unwrap(homePoint.schedule)) }}
+              </div>
+            </div>
+            <div class="time-info-card">
+              <div class="time-label">預估到達</div>
+              <div class="time-value estimated-time">
+                {{ formatEstimatedTime(unwrap(homePoint.arrival)) }}
+              </div>
+            </div>
+            <div class="time-info-card" v-if="getTimeDifference()">
+              <div class="time-label">時間差異</div>
+              <div class="time-value" :class="getTimeDifferenceClass()">
+                {{ getTimeDifference() }}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 路線地圖區域 -->
         <div class="map-section q-mb-md" v-if="hasStations">
           <div class="section-title">🗺️ 路線地圖</div>
@@ -202,32 +227,36 @@ export default defineComponent({
     }
 
     // 處理GPS定位功能 - 在地圖上顯示垃圾車當前位置
-    const handleGPSLocation = () => {
-      console.log('GPS定位被點擊，顯示垃圾車當前位置')
+    const handleGPSLocation = (gpsData) => {
+      console.log('GPS定位被點擊，顯示垃圾車當前位置:', gpsData)
 
       // 如果詳細資訊區域未展開，先展開它
       if (!expanded.value) {
         expanded.value = true
       }
 
-      // 查找垃圾車當前位置（arrival point）
-      if (props.arrivalPoint && props.arrivalPoint.id) {
-        const gpsPointData = {
-          title: '🚛 垃圾車GPS定位',
-          description: '垃圾車目前所在位置',
-          point: props.arrivalPoint
-        }
+      // 使用傳入的GPS數據或預設使用arrivalPoint
+      const pointData = gpsData || {
+        point: props.arrivalPoint,
+        type: 'gps',
+        title: '🚛 垃圾車GPS定位',
+        description: `垃圾車目前位置 - ${unwrap(props.arrivalPoint.name) || '未知位置'}`
+      }
+
+      // 檢查是否有有效的GPS位置數據
+      if (pointData.point && pointData.point.id) {
+        console.log('設置GPS高亮點:', pointData)
 
         // 設置高亮點數據
-        highlightPoint.value = gpsPointData
+        highlightPoint.value = pointData
 
         // 延遲一點確保地圖已渲染
         setTimeout(() => {
-          highlightPoint.value = { ...gpsPointData, timestamp: Date.now() }
+          highlightPoint.value = { ...pointData, timestamp: Date.now() }
         }, 300)
       } else {
-        // 如果沒有GPS數據，顯示提示
-        console.log('目前沒有GPS定位數據')
+        console.warn('沒有有效的GPS定位數據')
+        // 這裡可以添加用戶提示，比如使用Quasar的Notify
       }
     }
 
@@ -309,6 +338,42 @@ export default defineComponent({
       return defaultCenter
     }
 
+    // 格式化表定時間
+    const formatScheduledTime = (time) => {
+      if (!time) return '未知'
+      const date = new Date(time)
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+
+    // 格式化預估到達時間
+    const formatEstimatedTime = (time) => {
+      if (!time) return '未知'
+      const date = new Date(time)
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+
+    // 獲取時間差異
+    const getTimeDifference = () => {
+      if (!props.homePoint.arrival || !props.arrivalPoint.arrival) return null
+      const scheduled = new Date(props.homePoint.arrival)
+      const actual = new Date(props.arrivalPoint.arrival)
+      const diff = actual - scheduled
+
+      // 轉換為分鐘
+      const minutes = Math.floor(diff / 1000 / 60)
+
+      return `${Math.abs(minutes)} 分鐘`
+    }
+
+    // 獲取時間差異的樣式
+    const getTimeDifferenceClass = () => {
+      const diff = getTimeDifference()
+      if (!diff) return ''
+
+      const minutes = parseInt(diff)
+      return minutes < 0 ? 'text-negative' : 'text-positive'
+    }
+
     return {
       expanded,
       highlightPoint,
@@ -324,7 +389,11 @@ export default defineComponent({
       safeRouteData,
       safeStations,
       safeCurrentArrivalRank,
-      getCenterLocation
+      getCenterLocation,
+      formatScheduledTime,
+      formatEstimatedTime,
+      getTimeDifference,
+      getTimeDifferenceClass
     }
   }
 })
@@ -401,6 +470,37 @@ export default defineComponent({
   /* 站點區域不需要額外樣式，StationsList 組件會處理 */
 }
 
+/* 時間資訊區域樣式 */
+.time-info-section {
+  padding: 12px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.time-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.time-info-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.time-label {
+  font-size: 0.85rem;
+  color: #868e96;
+  margin-bottom: 4px;
+}
+
+.time-value {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
 /* 響應式設計 - 手機端進一步優化 */
 @media (max-width: 600px) {
   .route-panel-container {
@@ -448,6 +548,10 @@ export default defineComponent({
   .map-buttons {
     justify-content: center;
     gap: 4px;
+  }
+
+  .time-info-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

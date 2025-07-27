@@ -231,9 +231,21 @@ export default defineComponent({
 
     // 處理GPS定位按鈕點擊
     const handleGPSLocationClick = () => {
-      // TODO: 實作GPS定位功能
-      console.log('GPS定位按鈕被點擊')
-      emit('show-gps-location')
+      console.log('GPS定位按鈕被點擊，發送GPS定位事件')
+
+      // 檢查是否有垃圾車位置數據
+      if (props.arrivalPoint && props.arrivalPoint.id) {
+        console.log('發送GPS定位事件，垃圾車位置:', props.arrivalPoint)
+        emit('show-gps-location', {
+          point: props.arrivalPoint,
+          type: 'gps',
+          title: '🚛 垃圾車GPS定位',
+          description: `垃圾車目前位置 - ${unwrap(props.arrivalPoint.name) || '未知位置'}`
+        })
+      } else {
+        console.warn('沒有垃圾車GPS位置數據')
+        // 可以在這裡添加提示訊息給用戶
+      }
     }
 
     return {

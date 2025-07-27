@@ -51,8 +51,16 @@
           <span>監看點位置</span>
         </div>
         <div class="legend-item">
-          <div class="legend-marker route-point"></div>
-          <span>其他站點</span>
+          <div class="legend-marker cleaned-point"></div>
+          <span>已清運站點</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-marker current-point"></div>
+          <span>清運中站點</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-marker pending-point"></div>
+          <span>待清運站點</span>
         </div>
       </div>
     </div>
@@ -302,14 +310,37 @@ export default defineComponent({
             className = 'home-marker-container'
             title = `📍 監看點 - ${pointName}`
           } else {
-            // 普通站點 - 使用編號圓圈
+            // 普通站點 - 根據清運狀態使用不同顏色
+            const currentArrivalRank = parseInt(props.arrivalPoint.rank?.['#text'] || props.arrivalPoint.rank || 0)
+            const pointRank = parseInt(rank)
+
+            let markerClass, statusText, statusIcon
+
+            if (pointRank < currentArrivalRank) {
+              // 已清運的站點 - 使用綠色
+              markerClass = 'cleaned-marker'
+              statusText = '已清運'
+              statusIcon = '✓'
+            } else if (pointRank === currentArrivalRank) {
+              // 當前站點 - 使用橙色
+              markerClass = 'current-marker'
+              statusText = '清運中'
+              statusIcon = '🚛'
+            } else {
+              // 未清運的站點 - 使用藍色
+              markerClass = 'pending-marker'
+              statusText = '待清運'
+              statusIcon = '○'
+            }
+
             markerHtml = `
-              <div class="route-marker">
+              <div class="route-marker ${markerClass}">
                 <div class="marker-number-circle">${rank}</div>
+                <div class="marker-status-icon">${statusIcon}</div>
               </div>
             `
             className = 'route-marker-container'
-            title = `站點 ${rank} - ${pointName}`
+            title = `站點 ${rank} - ${pointName} (${statusText})`
           }
 
           // 創建自定義圖標
@@ -476,6 +507,34 @@ export default defineComponent({
   align-items: center;
   gap: 6px; /* 從 8px 減少 */
   font-size: 0.85rem; /* 從 14px 轉換並略減 */
+}
+
+.legend-marker {
+  width: 14px; /* 從 16px 減少 */
+  height: 14px; /* 從 16px 減少 */
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.legend-marker.current-location {
+  background-color: rgba(255, 87, 34, 0.8); /* 垃圾車位置 - 橙紅色 */
+}
+
+.legend-marker.home-point {
+  background-color: rgba(33, 150, 243, 0.8); /* 監看點位置 - 藍色 */
+}
+
+.legend-marker.cleaned-point {
+  background-color: rgba(76, 175, 80, 0.8); /* 已清運站點 - 綠色 */
+}
+
+.legend-marker.current-point {
+  background-color: rgba(255, 152, 0, 0.8); /* 清運中站點 - 橙色 */
+}
+
+.legend-marker.pending-point {
+  background-color: rgba(158, 158, 158, 0.8); /* 待清運站點 - 灰色 */
 }
 
 /* 自定義標記樣式已移至 src/css/leaflet-fixes.scss */
