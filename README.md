@@ -31,7 +31,7 @@
 
 #### 關鍵技術解決方案
 
-**1. Leaflet 2.0.0-alpha 升級 (2025年7月)**
+#### Leaflet 2.0.0-alpha 升級
 
 我們成功從 CDN 版本 leaflet@1.9.4 升級到本地安裝的 leaflet@2.0.0-alpha，獲得以下改進：
 
@@ -40,7 +40,7 @@
 ✅ **離線支持**：減少對外部 CDN 的依賴
 ✅ **現代化 API**：使用最新的 Leaflet 2.0 架構
 
-**重要 API 變更**：
+**API 變更範例**：
 ```javascript
 // 舊版 leaflet@1.9.4 (CDN)
 const map = L.map(container, options)
@@ -53,7 +53,13 @@ const tileLayer = new L.TileLayer(url, options)
 const marker = new L.CircleMarker(latlng, options)
 ```
 
-**圖標資源處理**：
+**升級重點**：
+- 🔄 **API 統一化**：所有類別都使用 `new` 關鍵字實例化
+- 📦 **模組化導入**：從 CDN 切換到 ES6 import/export
+- 🎯 **類型安全**：更嚴格的物件導向設計
+- ⚡ **效能最佳化**：移除舊版相容性代碼
+
+**1. 圖標資源處理**
 ```javascript
 // ES6 模組導入方式
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
@@ -68,12 +74,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 })
 ```
-
-**升級重點**：
-- 🔄 **API 統一化**：所有類別都使用 `new` 關鍵字實例化
-- 📦 **模組化導入**：從 CDN 切換到 ES6 import/export
-- 🎯 **類型安全**：更嚴格的物件導向設計
-- ⚡ **效能最佳化**：移除舊版相容性代碼
 
 **2. 地圖尺寸問題解決**
 ```javascript
@@ -132,6 +132,8 @@ const line24Options = computed(() => {
 
 ### 常見問題與解決方案
 
+以下解法均基於 Leaflet 2.0.0-alpha 的實作環境。
+
 #### 地圖只顯示左上角
 **問題**：地圖容器尺寸計算錯誤導致只顯示部分地圖
 
@@ -145,8 +147,7 @@ const line24Options = computed(() => {
 
 **解決方案**：
 1. 實作單例 LeafletLoader 避免重複載入
-2. 使用 `requestIdleCallback` 在瀏覽器空閒時初始化
-3. 批量標記操作減少 DOM 操作次數
+2. 批量標記操作減少 DOM 操作次數
 
 #### 監看點選項不更新
 **問題**：垃圾車位置更新後，下拉選單選項沒有同步更新
