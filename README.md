@@ -2,8 +2,6 @@
 
 2023rubbish
 
-[繁體中文](README.zh-TW.md)
-
 ## 功能特色
 
 - 🚛 **實時垃圾車追蹤**：顯示垃圾車當前位置和預計到達時間
@@ -33,7 +31,7 @@
 
 #### 關鍵技術解決方案
 
-**1. Leaflet 2.0.0-alpha 升級 (2025年7月)**
+#### Leaflet 2.0.0-alpha 升級
 
 我們成功從 CDN 版本 leaflet@1.9.4 升級到本地安裝的 leaflet@2.0.0-alpha，獲得以下改進：
 
@@ -42,7 +40,7 @@
 ✅ **離線支持**：減少對外部 CDN 的依賴
 ✅ **現代化 API**：使用最新的 Leaflet 2.0 架構
 
-**重要 API 變更**：
+**API 變更範例**：
 ```javascript
 // 舊版 leaflet@1.9.4 (CDN)
 const map = L.map(container, options)
@@ -55,7 +53,13 @@ const tileLayer = new L.TileLayer(url, options)
 const marker = new L.CircleMarker(latlng, options)
 ```
 
-**圖標資源處理**：
+**升級重點**：
+- 🔄 **API 統一化**：所有類別都使用 `new` 關鍵字實例化
+- 📦 **模組化導入**：從 CDN 切換到 ES6 import/export
+- 🎯 **類型安全**：更嚴格的物件導向設計
+- ⚡ **效能最佳化**：移除舊版相容性代碼
+
+**1. 圖標資源處理**
 ```javascript
 // ES6 模組導入方式
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
@@ -70,12 +74,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 })
 ```
-
-**升級重點**：
-- 🔄 **API 統一化**：所有類別都使用 `new` 關鍵字實例化
-- 📦 **模組化導入**：從 CDN 切換到 ES6 import/export
-- 🎯 **類型安全**：更嚴格的物件導向設計
-- ⚡ **效能最佳化**：移除舊版相容性代碼
 
 **2. 地圖尺寸問題解決**
 ```javascript
@@ -134,6 +132,8 @@ const line24Options = computed(() => {
 
 ### 常見問題與解決方案
 
+以下解法均基於 Leaflet 2.0.0-alpha 的實作環境。
+
 #### 地圖只顯示左上角
 **問題**：地圖容器尺寸計算錯誤導致只顯示部分地圖
 
@@ -147,8 +147,7 @@ const line24Options = computed(() => {
 
 **解決方案**：
 1. 實作單例 LeafletLoader 避免重複載入
-2. 使用 `requestIdleCallback` 在瀏覽器空閒時初始化
-3. 批量標記操作減少 DOM 操作次數
+2. 批量標記操作減少 DOM 操作次數
 
 #### 監看點選項不更新
 **問題**：垃圾車位置更新後，下拉選單選項沒有同步更新
@@ -158,68 +157,59 @@ const line24Options = computed(() => {
 2. 在數據更新後觸發 `auto-reload` 事件
 3. 深度監聽 store 狀態變化
 
-## Install the dependencies
-Run `npm install` to install the project's dependencies. This repository ships
-with a `package-lock.json`, so npm is the default package manager. You may use
-Yarn if you prefer.
+## 設置開發環境
+執行 `npm install` 安裝專案相依套件。本專案提供 `package-lock.json`，建議使用 npm；若有需要也可改用 Yarn。
 
 ```bash
 npm install
-# or
+# 或
 yarn
 ```
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
+### 啟動開發模式（含熱重新載入與錯誤回報）
 ```bash
 npx quasar dev
 ```
 
-
-### Build the app for production
+### 建構正式版
 ```bash
 npx quasar build
 ```
 
-### Deploying to GitHub Pages
-The build output will be created in `dist/spa`. Commit this directory to the `gh-pages` branch or configure GitHub Pages to serve it from the `docs` folder.
-An automated workflow in `.github/workflows/deploy.yml` does this
-automatically for pushes to `main`.
+## 部署到雲端
 
-After the workflow completes, visit your repository's **Settings → Pages**
-section to confirm the deployment URL. GitHub will typically serve the site at
-`https://<USERNAME>.github.io/<REPO>/`.
+### 部署到 GitHub Pages
+建置輸出會產生於 `dist/spa`。可將此目錄提交至 `gh-pages` 分支，或設定 GitHub Pages 以 `docs` 資料夾為來源。
+位於 `.github/workflows/deploy.yml` 的自動化流程會在推送至 `main` 分支時自動部署。
+
+部署完成後，可於倉庫的 **Settings → Pages** 頁面確認網址，通常會是 `https://<USERNAME>.github.io/<REPO>/`。
 
 ### Cloudflare Worker Proxy
-The worker source lives in `cloudflare/steep-smoke-0e4c`. Change into this directory before running any Wrangler commands.
+Worker 原始碼位於 `cloudflare/steep-smoke-0e4c`，執行任何 Wrangler 指令前請先切換到該目錄。
 
 ```bash
 cd cloudflare/steep-smoke-0e4c
-# Start a local dev server
-# wrangler provides a local dev server. Use the --remote flag so the
-# worker runs in an environment that includes the Web APIs (DOMParser etc.)
+# 啟動本機開發伺服器
+# wrangler 提供本機開發伺服器，使用 --remote 可在支援 Web API（如 DOMParser）的環境中執行
 wrangler dev --remote
-# The dev server runs on http://localhost:8787
-# The front-end automatically connects to this URL when running `quasar dev`
-# Deploy to Cloudflare
+# 開發伺服器預設為 http://localhost:8787
+# 前端在執行 `quasar dev` 時會自動連線到此 URL
+# 部署至 Cloudflare
 wrangler deploy
 ```
 
-This project is preconfigured to use the hosted worker at
-`https://steep-smoke-0e4c.vega-0b1.workers.dev`. When running `quasar dev`
-the front-end automatically connects to `http://localhost:8787`. If you
-deploy your own worker, copy `.env.example` to `.env` and update
-`VITE_API_BASE_URL` to point to the new URL so the front-end can retrieve
-garbage truck data through it.
+本專案預設使用部署於 `https://steep-smoke-0e4c.vega-0b1.workers.dev` 的 worker。執行 `quasar dev` 時，前端會自動連線到 `http://localhost:8787`。
+若自行部署 worker，請複製 `.env.example` 為 `.env`，並更新 `VITE_API_BASE_URL` 指向新的網址，讓前端能透過該 worker 取得垃圾車資料。
 
+## 自訂設定
+請參考 [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js)。
 
-### Customize the configuration
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+## 授權條款
 
-## License
+此專案採用 [MIT 授權條款](LICENSE)。
 
-This project is licensed under the [MIT License](LICENSE).
-
-## 開發經驗總結
+## 特別修改與開發經驗
+本專案進行了多項特別修改與效能優化，例如升級 Leaflet 2.0-alpha、解決地圖尺寸問題與資源載入最佳化，以下為開發時的重點經驗。
 
 ### 地圖組件開發要點
 1. **容器尺寸管理**：地圖組件對容器尺寸敏感，需多次確保尺寸正確
