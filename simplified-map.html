@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>垃圾車路線地圖 - 簡易版</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+e2KFCkDTn4KXujt5YDOl+gfGSyV76EhD9ctNg0xo="
+    crossorigin=""
+  />
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
+    }
+    #map {
+      height: 80vh;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>垃圾車路線地圖 (純 HTML 版)</h1>
+  <p>此頁面僅以呼叫 API 與呈現地圖為主，不依賴 Vue 或 Quasar。</p>
+  <div>
+    <label>路線 ID: <input type="text" id="lineId" value="235024" /></label>
+    <button id="loadBtn">載入路線</button>
+  </div>
+  <div id="map"></div>
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o9N1jEVrSZvOZrgypPT3yfyqC6C6F1A+bZi2AVx0zYs="
+    crossorigin=""
+  ></script>
+  <script>
+    // 初始化地圖
+    const map = L.map('map').setView([24.9896, 121.4953], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    const apiBase = 'https://steep-smoke-0e4c.vega-0b1.workers.dev';
+
+    document.getElementById('loadBtn').addEventListener('click', () => {
+      const lineId = document.getElementById('lineId').value.trim();
+      if (!lineId) {
+        alert('請輸入路線 ID');
+        return;
+      }
+
+      fetch(`${apiBase}/?lineId=${lineId}`)
+        .then(res => res.json())
+        .then(data => {
+          const pointsData = data?.points?.point;
+          if (!pointsData) {
+            alert('無法取得路線資料');
+            return;
+          }
+
+          // 清除既有圖層
+          map.eachLayer(layer => {
+            if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+              map.removeLayer(layer);
+            }
+          });
+
+          const points = Array.isArray(pointsData) ? pointsData : [pointsData];
+          const coords = [];
+          points.forEach(p => {
+            const lat = parseFloat(p.latitude?.['#text'] || p.latitude);
+            const lng = parseFloat(p.longitude?.['#text'] || p.longitude);
+            if (!isFinite(lat) || !isFinite(lng)) return;
+
+            const name = p.name?.['#text'] || p.name || '';
+            const schedule = p.schedule?.['#text'] || p.schedule || '';
+            const marker = L.marker([lat, lng]).addTo(map);
+            marker.bindPopup(`${name}${schedule ? '<br>' + schedule : ''}`);
+            coords.push([lat, lng]);
+          });
+
+          if (coords.length) {
+            L.polyline(coords, { color: 'blue' }).addTo(map);
+            map.fitBounds(coords);
+          }
+        })
+        .catch(err => {
+          console.error('API 錯誤', err);
+          alert('載入 API 發生錯誤');
+        });
+    });
+
+    // 預設載入初始路線
+    document.getElementById('loadBtn').click();
+  </script>
+</body>
+</html>
