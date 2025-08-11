@@ -19,6 +19,8 @@ jobs:
         run: npm install
       - name: Build
         run: npx quasar build
+      - name: Copy simplified-map.html
+        run: cp simplified-map.html dist/spa/
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
