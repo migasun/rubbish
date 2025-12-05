@@ -32,3 +32,6 @@ yarn-error.log*
 *.sln
 /.vscode/
 /yarn.lock
+
+# Test results
+test-results/
