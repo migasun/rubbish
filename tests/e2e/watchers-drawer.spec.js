@@ -1,4 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { registerLineMocks } from './helpers/mockApi.js';
+
+test.beforeEach(async ({ page }) => {
+  await registerLineMocks(page);
+});
 
 test.describe('watchers drawer', () => {
   test('shows default watcher labels and ids after opening the menu', async ({ page }) => {
