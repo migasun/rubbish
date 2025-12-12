@@ -24,8 +24,22 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Prepare test artifacts directory
+        run: mkdir -p test-results
+
       - name: Run unit tests
-        run: npm run test:unit
+        run: |
+          set -o pipefail
+          npm run test:unit | tee test-results/unit-tests.log
 
       - name: Run end-to-end tests
-        run: npm run test:e2e
+        run: |
+          set -o pipefail
+          npm run test:e2e | tee test-results/e2e-tests.log
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: test-results/
