@@ -9,7 +9,8 @@ test('renders mocked route data and exposes detailed station info', async ({ pag
   await page.goto('/')
 
   const noonPanel = page.locator('.route-panel').first()
-  await expect(noonPanel.getByText('市府路口')).toBeVisible()
+  const noonStationRow = noonPanel.locator('.point-name', { hasText: '市府路口' })
+  await expect(noonStationRow).toBeVisible()
   await expect(noonPanel.getByText('12:03', { exact: false })).toBeVisible()
 
   const expandButton = noonPanel.getByRole('button', { name: '查看所有站點' })
@@ -28,7 +29,8 @@ test('updates drawer watchers when selecting a new home point', async ({ page })
   const drawer = page.locator('.q-drawer')
   await expect(drawer).toBeVisible()
 
-  const noonSelect = drawer.getByLabel('中午清運路線監看點')
+  const noonSelect = drawer.getByRole('combobox', { name: '中午清運路線監看點' })
+  await noonSelect.scrollIntoViewIfNeeded()
   await noonSelect.click()
   await page.getByRole('option', { name: /中央公園/ }).click()
 
