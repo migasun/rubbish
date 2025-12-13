@@ -9,7 +9,7 @@ export default defineConfig({
   fullyParallel: false,
   use: {
     baseURL: 'http://127.0.0.1:9000',
-    headless: false,
+    headless: true,
     trace: 'on-first-retry'
   },
   projects: [
