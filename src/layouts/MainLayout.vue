@@ -107,6 +107,7 @@
 import { defineComponent, ref, watch, computed, nextTick, onMounted } from 'vue'
 import { useWatchersStore } from 'src/stores/watchers'
 import WatcherSelector from 'src/components/WatcherSelector.vue'
+import { api } from 'boot/axios'
 
 export default defineComponent({
   name: 'MainLayout',
@@ -123,31 +124,16 @@ export default defineComponent({
     const line24HomeId = ref(watchersStore.watchers[0]?.homeId || 894299)
     const line60HomeId = ref(watchersStore.watchers[1]?.homeId || 995714)
 
-    // 根據環境設定 API 基礎網址
-    const getApiBaseUrl = () => {
-      return import.meta.env.VITE_API_BASE_URL ||
-        (import.meta.env.DEV
-          ? 'http://localhost:8787'
-          : 'https://steep-smoke-0e4c.vega-0b1.workers.dev')
-    }
-
     // 載入監看點數據的函數
     async function loadPointsForLine(lineParam) {
       if (!lineParam) return
 
       try {
         const lineConfig = watchersStore.getLineConfig(lineParam)
-        const apiBaseUrl = getApiBaseUrl()
+        console.log(`Loading points for ${lineParam}, API call with lineId: ${lineConfig.id}`)
 
-        console.log(`Loading points for ${lineParam}, API: ${apiBaseUrl}/?lineId=${lineConfig.id}`)
-
-        const response = await fetch(`${apiBaseUrl}/?lineId=${lineConfig.id}`)
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const data = await response.json()
+        const response = await api.get('/', { params: { lineId: lineConfig.id } })
+        const data = response.data
 
         // 獲取當前垃圾車位置（arrival 站點編號）
         const currentArrivalRank = parseInt(data.line?.arrival?.['#text'] || data.line?.arrival || 0)
@@ -206,6 +192,7 @@ export default defineComponent({
           watchersStore.setAvailablePoints(lineParam, points)
         }
       } catch (error) {
+        // The axios interceptor will handle the dialog, but we still log the error
         console.error('載入監看點失敗:', error)
         watchersStore.setAvailablePoints(lineParam, [])
       }
