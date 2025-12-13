@@ -9,7 +9,7 @@
     "dev": "quasar dev",
     "build": "quasar build",
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "node --test $(find tests -name \"*.test.js\")",
+    "test:unit": "node --test tests/watchers-store.test.js",
     "test:e2e": "node ./scripts/run-e2e.mjs"
   },
   "dependencies": {

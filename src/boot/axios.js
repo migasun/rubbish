@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
+import { Notify } from 'quasar'
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
@@ -29,6 +30,35 @@ export default boot(({ app }) => {
   app.config.globalProperties.$api = api
   // ^ ^ ^ this will allow you to use this.$api (for Vue Options API form)
   //       so you can easily perform requests against your app's API
+
+  api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response && error.response.status >= 500) {
+        Notify.create({
+          icon: 'error',
+          color: 'negative',
+          position: 'top',
+          message: `後端服務器錯誤 (代碼: ${error.response.status})`,
+          caption: error.message,
+          multiLine: true,
+          actions: [{ icon: 'close', color: 'white', round: true }]
+        })
+      } else if (!error.response) {
+        Notify.create({
+          icon: 'wifi_off',
+          color: 'warning',
+          textColor: 'dark',
+          position: 'top',
+          message: '網路連線錯誤',
+          caption: '無法連線至伺服器，請檢查您的網路連線。',
+          multiLine: true,
+          actions: [{ icon: 'close', color: 'dark', round: true }]
+        })
+      }
+      return Promise.reject(error)
+    }
+  )
 })
 
 export { api, API_BASE_URL }
