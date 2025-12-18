@@ -1,22 +1,15 @@
 <template>
-  <q-item
-    clickable
-    tag="a"
-    target="_blank"
+  <v-list-item
     :href="link"
+    target="_blank"
+    link
   >
-    <q-item-section
-      v-if="icon"
-      avatar
-    >
-      <q-icon :name="icon" />
-    </q-item-section>
-
-    <q-item-section>
-      <q-item-label>{{ title }}</q-item-label>
-      <q-item-label caption>{{ caption }}</q-item-label>
-    </q-item-section>
-  </q-item>
+    <template v-slot:prepend v-if="icon">
+      <v-icon :icon="icon"></v-icon>
+    </template>
+    <v-list-item-title>{{ title }}</v-list-item-title>
+    <v-list-item-subtitle>{{ caption }}</v-list-item-subtitle>
+  </v-list-item>
 </template>
 
 <script>

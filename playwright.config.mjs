@@ -19,7 +19,7 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: 'npx quasar dev --hostname 0.0.0.0 --port 9000',
+    command: 'yarn dev --port 9000',
     url: 'http://127.0.0.1:9000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000

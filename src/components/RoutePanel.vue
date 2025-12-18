@@ -2,21 +2,22 @@
   <div class="route-panel-container">
     <!-- 路線標題 -->
     <div class="route-header">
-      <div class="route-title">
-        <q-icon :name="routeIcon" size="1.5rem" color="primary" class="q-mr-sm" />
+      <div class="route-title d-flex align-center">
+        <v-icon :icon="routeIcon" size="small" color="primary" class="mr-2"></v-icon>
         <span class="text-h6">{{ routeName }}</span>
       </div>
 
       <!-- 快速狀態指示器 -->
       <div class="quick-status">
-        <q-chip
+        <v-chip
           :color="getQuickStatusColor()"
-          text-color="white"
-          :icon="getQuickStatusIcon()"
-          size="sm"
+          :prepend-icon="getQuickStatusIcon()"
+          size="small"
+          label
+          class="text-white"
         >
           {{ getQuickStatusText() }}
-        </q-chip>
+        </v-chip>
       </div>
     </div>
 
@@ -38,22 +39,23 @@
 
     <!-- 展開/收起按鈕 -->
     <div class="expand-section">
-      <q-btn
+      <v-btn
         @click="toggleExpanded"
-        :icon="expanded ? 'expand_less' : 'expand_more'"
-        :label="expanded ? '收起詳細資訊' : '查看所有站點'"
-        flat
+        :prepend-icon="expanded ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+        variant="text"
         color="primary"
-        class="full-width"
-        no-caps
-      />
+        block
+        class="text-none"
+      >
+        {{ expanded ? '收起詳細資訊' : '查看所有站點' }}
+      </v-btn>
     </div>
 
     <!-- 詳細資訊區域 -->
-    <q-slide-transition>
+    <v-expand-transition>
       <div v-show="expanded" class="detailed-info">
         <!-- 時間資訊區域 -->
-        <div class="time-info-section q-mb-md">
+        <div class="time-info-section mb-4">
           <div class="section-title">⏰ 時間資訊</div>
           <div class="time-info-grid">
             <div class="time-info-card">
@@ -78,7 +80,7 @@
         </div>
 
         <!-- 路線地圖區域 -->
-        <div class="map-section q-mb-md" v-if="hasStations">
+        <div class="map-section mb-4" v-if="hasStations">
           <div class="section-title">🗺️ 路線地圖</div>
           <OpenStreetMapView
             :route-name="routeName"
@@ -91,45 +93,45 @@
         </div>
 
         <!-- 地圖連結區域 -->
-        <div class="map-links-section q-mb-md" v-if="hasMapLinks">
+        <div class="map-links-section mb-4" v-if="hasMapLinks">
           <div class="section-title">🔗 外部地圖連結</div>
-          <div class="map-buttons">
-            <q-btn
+          <div class="map-buttons d-flex flex-wrap gap-2">
+            <v-btn
               v-if="arrivalMap"
-              size="sm"
+              size="small"
               color="primary"
-              outline
-              icon="my_location"
-              label="垃圾車位置"
+              variant="outlined"
+              prepend-icon="mdi-crosshairs-gps"
               :href="arrivalMap"
               target="_blank"
-              no-caps
-              class="q-mr-sm q-mb-xs"
-            />
-            <q-btn
+              class="mr-2 mb-1 text-none"
+            >
+              垃圾車位置
+            </v-btn>
+            <v-btn
               v-if="homeMap"
-              size="sm"
+              size="small"
               color="secondary"
-              outline
-              icon="home"
-              label="監看點位置"
+              variant="outlined"
+              prepend-icon="mdi-home"
               :href="homeMap"
               target="_blank"
-              no-caps
-              class="q-mr-sm q-mb-xs"
-            />
-            <q-btn
+              class="mr-2 mb-1 text-none"
+            >
+              監看點位置
+            </v-btn>
+            <v-btn
               v-if="dataPlacemap"
-              size="sm"
-              color="accent"
-              outline
-              icon="gps_fixed"
-              label="GPS定位"
+              size="small"
+              color="info"
+              variant="outlined"
+              prepend-icon="mdi-crosshairs"
               :href="dataPlacemap"
               target="_blank"
-              no-caps
-              class="q-mb-xs"
-            />
+              class="mb-1 text-none"
+            >
+              GPS定位
+            </v-btn>
           </div>
         </div>
 
@@ -143,7 +145,7 @@
           />
         </div>
       </div>
-    </q-slide-transition>
+    </v-expand-transition>
   </div>
 </template>
 
@@ -169,7 +171,7 @@ export default defineComponent({
     },
     routeIcon: {
       type: String,
-      default: 'directions_bus'
+      default: 'mdi-bus'
     },
     routeData: {
       type: Object,
@@ -205,37 +207,29 @@ export default defineComponent({
     const expanded = ref(false)
     const highlightPoint = ref(null)
 
-    // 輔助函數：提取值
     const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
 
-    // 處理顯示監看點在地圖上的事件
     const handleShowHomePointOnMap = (pointData) => {
       console.log('RoutePanel 接收到顯示監看點請求:', pointData)
 
-      // 如果詳細資訊區域未展開，先展開它
       if (!expanded.value) {
         expanded.value = true
       }
 
-      // 設置高亮點數據
       highlightPoint.value = pointData
 
-      // 延遲一點確保地圖已渲染
       setTimeout(() => {
         highlightPoint.value = { ...pointData, timestamp: Date.now() }
       }, 300)
     }
 
-    // 處理GPS定位功能 - 在地圖上顯示垃圾車當前位置
     const handleGPSLocation = (gpsData) => {
       console.log('GPS定位被點擊，顯示垃圾車當前位置:', gpsData)
 
-      // 如果詳細資訊區域未展開，先展開它
       if (!expanded.value) {
         expanded.value = true
       }
 
-      // 使用傳入的GPS數據或預設使用arrivalPoint
       const pointData = gpsData || {
         point: props.arrivalPoint,
         type: 'gps',
@@ -243,20 +237,16 @@ export default defineComponent({
         description: `垃圾車目前位置 - ${unwrap(props.arrivalPoint.name) || '未知位置'}`
       }
 
-      // 檢查是否有有效的GPS位置數據
       if (pointData.point && pointData.point.id) {
         console.log('設置GPS高亮點:', pointData)
 
-        // 設置高亮點數據
         highlightPoint.value = pointData
 
-        // 延遲一點確保地圖已渲染
         setTimeout(() => {
           highlightPoint.value = { ...pointData, timestamp: Date.now() }
         }, 300)
       } else {
         console.warn('沒有有效的GPS定位數據')
-        // 這裡可以添加用戶提示，比如使用Quasar的Notify
       }
     }
 
@@ -270,16 +260,16 @@ export default defineComponent({
 
     const getQuickStatusColor = () => {
       if (props.isLate === null || props.isLate === undefined) return 'grey'
-      if (props.isLate > 0) return 'negative'
-      if (props.isLate === 0) return 'positive'
+      if (props.isLate > 0) return 'error'
+      if (props.isLate === 0) return 'success'
       return 'primary'
     }
 
     const getQuickStatusIcon = () => {
-      if (props.isLate === null || props.isLate === undefined) return 'help_outline'
-      if (props.isLate > 0) return 'check_circle'
-      if (props.isLate === 0) return 'location_on'
-      return 'schedule'
+      if (props.isLate === null || props.isLate === undefined) return 'mdi-help-circle-outline'
+      if (props.isLate > 0) return 'mdi-check-circle'
+      if (props.isLate === 0) return 'mdi-map-marker'
+      return 'mdi-clock-outline'
     }
 
     const getQuickStatusText = () => {
@@ -293,7 +283,6 @@ export default defineComponent({
       expanded.value = !expanded.value
     }
 
-    // 安全地獲取 routeData 的屬性
     const safeRouteData = computed(() => {
       return props.routeData || {}
     })
@@ -307,15 +296,12 @@ export default defineComponent({
       return parseInt(rank) || 0
     })
 
-    // 獲取地圖中心位置
     const getCenterLocation = () => {
-      // 預設中心位置：中和中山路三段32號附近
       const defaultCenter = {
         lat: 24.9896,
         lng: 121.4953
       }
 
-      // 如果有監看點位置，使用監看點作為中心
       if (props.homePoint?.latitude && props.homePoint?.longitude) {
         const lat = parseFloat(props.homePoint.latitude?.['#text'] || props.homePoint.latitude || 0)
         const lng = parseFloat(props.homePoint.longitude?.['#text'] || props.homePoint.longitude || 0)
@@ -325,7 +311,6 @@ export default defineComponent({
         }
       }
 
-      // 如果有垃圾車當前位置，使用當前位置作為中心
       if (props.arrivalPoint?.latitude && props.arrivalPoint?.longitude) {
         const lat = parseFloat(props.arrivalPoint.latitude?.['#text'] || props.arrivalPoint.latitude || 0)
         const lng = parseFloat(props.arrivalPoint.longitude?.['#text'] || props.arrivalPoint.longitude || 0)
@@ -338,40 +323,35 @@ export default defineComponent({
       return defaultCenter
     }
 
-    // 格式化表定時間
     const formatScheduledTime = (time) => {
       if (!time) return '未知'
       const date = new Date(time)
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 
-    // 格式化預估到達時間
     const formatEstimatedTime = (time) => {
       if (!time) return '未知'
       const date = new Date(time)
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 
-    // 獲取時間差異
     const getTimeDifference = () => {
       if (!props.homePoint.arrival || !props.arrivalPoint.arrival) return null
       const scheduled = new Date(props.homePoint.arrival)
       const actual = new Date(props.arrivalPoint.arrival)
       const diff = actual - scheduled
 
-      // 轉換為分鐘
       const minutes = Math.floor(diff / 1000 / 60)
 
       return `${Math.abs(minutes)} 分鐘`
     }
 
-    // 獲取時間差異的樣式
     const getTimeDifferenceClass = () => {
       const diff = getTimeDifference()
       if (!diff) return ''
 
       const minutes = parseInt(diff)
-      return minutes < 0 ? 'text-negative' : 'text-positive'
+      return minutes < 0 ? 'text-error' : 'text-success'
     }
 
     return {
@@ -402,16 +382,16 @@ export default defineComponent({
 <style scoped>
 .route-panel-container {
   background: #ffffff;
-  border-radius: 8px; /* 從 12px 減少 */
+  border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 8px; /* 添加組件間距但保持緊湊 */
+  margin-bottom: 8px;
 }
 
 .route-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px; /* 從 16px 20px 減少 */
+  padding: 12px 16px;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-bottom: 1px solid #dee2e6;
 }
@@ -427,50 +407,45 @@ export default defineComponent({
 }
 
 .main-status-area {
-  padding: 12px; /* 從 20px 大幅減少 */
+  padding: 12px;
   background: #ffffff;
 }
 
 .expand-section {
-  padding: 8px 16px; /* 從 12px 20px 減少 */
+  padding: 8px 16px;
   background: #f8f9fa;
   border-top: 1px solid #dee2e6;
 }
 
 .detailed-info {
-  padding: 12px; /* 從 20px 大幅減少 */
+  padding: 12px;
   background: #fafbfc;
   border-top: 1px solid #dee2e6;
 }
 
 .section-title {
-  font-size: 0.95rem; /* 從 1rem 略減 */
+  font-size: 0.95rem;
   font-weight: 600;
   color: #495057;
-  margin-bottom: 8px; /* 從 12px 減少 */
-  padding-bottom: 4px; /* 從 6px 減少 */
+  margin-bottom: 8px;
+  padding-bottom: 4px;
   border-bottom: 2px solid #e9ecef;
 }
 
 .map-section {
-  margin-bottom: 16px; /* 從 24px 減少 */
+  margin-bottom: 16px;
 }
 
 .map-links-section {
-  margin-bottom: 16px; /* 從 24px 減少 */
+  margin-bottom: 16px;
 }
 
 .map-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px; /* 從 8px 略減 */
+  gap: 6px;
 }
 
-.stations-section {
-  /* 站點區域不需要額外樣式，StationsList 組件會處理 */
-}
-
-/* 時間資訊區域樣式 */
 .time-info-section {
   padding: 12px;
   background: #ffffff;
@@ -501,7 +476,6 @@ export default defineComponent({
   font-weight: 500;
 }
 
-/* 響應式設計 - 手機端進一步優化 */
 @media (max-width: 600px) {
   .route-panel-container {
     border-radius: 6px;
@@ -511,8 +485,8 @@ export default defineComponent({
   .route-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px; /* 從 12px 減少 */
-    padding: 10px 12px; /* 進一步減少 */
+    gap: 8px;
+    padding: 10px 12px;
   }
 
   .quick-status {
@@ -520,7 +494,7 @@ export default defineComponent({
   }
 
   .main-status-area {
-    padding: 8px; /* 手機端進一步減少 */
+    padding: 8px;
   }
 
   .expand-section {

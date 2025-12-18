@@ -1,130 +1,97 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
-      <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
+  <v-app>
+    <v-app-bar elevation="2">
+      <v-app-bar-nav-icon @click="toggleLeftDrawer"></v-app-bar-nav-icon>
+      <v-toolbar-title>垃圾車追蹤APP</v-toolbar-title>
+      <div class="mr-4">Vuetify</div>
+    </v-app-bar>
 
-        <q-toolbar-title>
-          垃圾車追蹤APP
-        </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
-      </q-toolbar>
-    </q-header>
-
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
-      <q-list>
-        <q-item-label header>目前監看點</q-item-label>
-        <q-item v-for="(w, index) in watchers" :key="w.lineParam + w.homeId" clickable>
-          <q-item-section>
-            <q-item-label>{{ w.label || w.lineParam }}</q-item-label>
-            <q-item-label caption>ID: {{ w.homeId }}</q-item-label>
-          </q-item-section>
-          <q-item-section side v-if="index >= 2">
-            <q-btn
-              flat
-              round
-              icon="delete"
-              size="sm"
-              color="negative"
-              @click="removeWatcher(index)"
-            />
-          </q-item-section>
-        </q-item>
-
-        <q-separator class="q-my-md" />
-
-        <q-item-label header>快速調整預設監看點</q-item-label>
-        <q-item>
-          <q-item-section>
-            <q-select
-              v-model="line24HomeId"
-              :options="line24Options"
-              option-value="value"
-              option-label="label"
-              label="中午清運路線監看點"
-              outlined
-              dense
-              emit-value
-              map-options
-            />
-          </q-item-section>
-        </q-item>
-        <q-item>
-          <q-item-section>
-            <q-select
-              v-model="line60HomeId"
-              :options="line60Options"
-              option-value="value"
-              option-label="label"
-              label="晚上清運路線監看點"
-              outlined
-              dense
-              emit-value
-              map-options
-            />
-          </q-item-section>
-        </q-item>
-
-        <q-separator class="q-my-md" />
-
-        <q-item-label header>相關連結</q-item-label>
-        <q-item
-          clickable
-          @click="openOfficalWebsite"
-          class="external-link-item"
+    <v-navigation-drawer v-model="leftDrawerOpen" bordered>
+      <v-list>
+        <v-list-subheader>目前監看點</v-list-subheader>
+        <v-list-item
+          v-for="(w, index) in watchers"
+          :key="w.lineParam + w.homeId"
+          :title="w.label || w.lineParam"
+          :subtitle="'ID: ' + w.homeId"
         >
-          <q-item-section avatar>
-            <q-icon name="map" color="primary" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>新北垃圾車清運資訊查詢</q-item-label>
-            <q-item-label caption>官方清運路線地圖</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-icon name="open_in_new" color="grey-6" size="sm" />
-          </q-item-section>
-        </q-item>
-      </q-list>
-    </q-drawer>
+          <template v-slot:append v-if="index >= 2">
+            <v-btn
+              icon="mdi-delete"
+              variant="text"
+              size="small"
+              color="error"
+              @click="removeWatcher(index)"
+            ></v-btn>
+          </template>
+        </v-list-item>
 
-    <q-page-container>
-      <!-- 隱藏新增監看點功能 -->
-      <!-- <WatcherSelector /> -->
+        <v-divider class="my-4"></v-divider>
+
+        <v-list-subheader>快速調整預設監看點</v-list-subheader>
+        <v-list-item>
+          <v-select
+            v-model="line24HomeId"
+            :items="line24Options"
+            item-title="label"
+            item-value="value"
+            label="中午清運路線監看點"
+            variant="outlined"
+            density="compact"
+          ></v-select>
+        </v-list-item>
+        <v-list-item>
+          <v-select
+            v-model="line60HomeId"
+            :items="line60Options"
+            item-title="label"
+            item-value="value"
+            label="晚上清運路線監看點"
+            variant="outlined"
+            density="compact"
+          ></v-select>
+        </v-list-item>
+
+        <v-divider class="my-4"></v-divider>
+
+        <v-list-subheader>相關連結</v-list-subheader>
+        <v-list-item
+          @click="openOfficalWebsite"
+          link
+        >
+          <template v-slot:prepend>
+            <v-icon color="primary">mdi-map</v-icon>
+          </template>
+          <v-list-item-title>新北垃圾車清運資訊查詢</v-list-item-title>
+          <v-list-item-subtitle>官方清運路線地圖</v-list-item-subtitle>
+          <template v-slot:append>
+            <v-icon color="grey-darken-1" size="small">mdi-open-in-new</v-icon>
+          </template>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-main>
       <router-view />
-    </q-page-container>
-  </q-layout>
+    </v-main>
+  </v-app>
 </template>
 
 <script>
 import { defineComponent, ref, watch, computed, nextTick, onMounted } from 'vue'
 import { useWatchersStore } from 'src/stores/watchers'
-import WatcherSelector from 'src/components/WatcherSelector.vue'
 import { api } from 'boot/axios'
 
 export default defineComponent({
   name: 'MainLayout',
 
-  components: {
-    WatcherSelector
-  },
-
   setup () {
-    const leftDrawerOpen = ref(false)
+    const leftDrawerOpen = ref(true)
     const watchersStore = useWatchersStore()
 
-    // 動態獲取當前的 homeId 值
     const line24HomeId = ref(watchersStore.watchers[0]?.homeId || 894299)
     const line60HomeId = ref(watchersStore.watchers[1]?.homeId || 995714)
 
-    // 載入監看點數據的函數
     async function loadPointsForLine(lineParam) {
       if (!lineParam) return
 
@@ -135,12 +102,10 @@ export default defineComponent({
         const response = await api.get('/', { params: { lineId: lineConfig.id } })
         const data = response.data
 
-        // 獲取當前垃圾車位置（arrival 站點編號）
         const currentArrivalRank = parseInt(data.line?.arrival?.['#text'] || data.line?.arrival || 0)
 
         let homes = []
 
-        // 根據實際的 API 結構解析監看點
         if (data.line && data.line.points && data.line.points.point) {
           const points = Array.isArray(data.line.points.point) ?
             data.line.points.point : [data.line.points.point]
@@ -149,7 +114,6 @@ export default defineComponent({
             const pointRank = parseInt(point.rank?.['#text'] || point.rank || 0)
             const isCurrentLocation = pointRank === currentArrivalRank
 
-            // 檢查 arrival 欄位是否包含垃圾車圖示標記
             const arrivalText = point.arrival?.['#text'] || point.arrival || ''
             const hasCarIcon = arrivalText.includes('Icon_CarS.png') || arrivalText.includes('now-at')
 
@@ -192,19 +156,16 @@ export default defineComponent({
           watchersStore.setAvailablePoints(lineParam, points)
         }
       } catch (error) {
-        // The axios interceptor will handle the dialog, but we still log the error
         console.error('載入監看點失敗:', error)
         watchersStore.setAvailablePoints(lineParam, [])
       }
     }
 
-    // 在組件掛載時載入監看點數據
     onMounted(() => {
       Object.keys(watchersStore.lineConfigs).forEach(lineParam => {
         loadPointsForLine(lineParam)
       })
 
-      // 監聽自動更新事件，重新載入監看點數據
       const handleAutoReload = () => {
         console.log('Auto reload triggered, reloading points data...')
         Object.keys(watchersStore.lineConfigs).forEach(lineParam => {
@@ -212,18 +173,15 @@ export default defineComponent({
         })
       }
 
-      // 監聽頁面的自動更新事件
       window.addEventListener('auto-reload', handleAutoReload)
       window.addEventListener('refresh', handleAutoReload)
 
-      // 組件卸載時清理事件監聽器
       return () => {
         window.removeEventListener('auto-reload', handleAutoReload)
         window.removeEventListener('refresh', handleAutoReload)
       }
     })
 
-    // 創建響應式的選項計算屬性
     const line24Options = computed(() => {
       const points = watchersStore.availablePoints['line24'] || []
       return points.map(point => {
@@ -260,35 +218,10 @@ export default defineComponent({
       }).filter(option => option.value && option.value > 0)
     })
 
-    // 保留 getPointOptions 函數用於調試或其他用途
-    const getPointOptions = (lineParam) => {
-      // 從 store 獲取可用的監看點
-      const points = watchersStore.availablePoints[lineParam] || []
-      console.log(`Getting point options for ${lineParam}:`, points)
-
-      // 處理數據格式，確保與 WatcherSelector 中的格式一致
-      return points.map(point => {
-        let label = `${point.homeName || point.homeId} - ${point.schedule || '時程未定'}`
-
-        // 如果是當前垃圾車位置，添加特殊標記
-        if (point.isCurrentLocation) {
-          label = `🚛 ${point.homeName || point.homeId} - ${point.schedule || '時程未定'} (垃圾車目前位置)`
-        }
-
-        label += ` (ID: ${point.homeId})`
-
-        return {
-          value: point.homeId,
-          label: label
-        }
-      }).filter(option => option.value && option.value > 0) // 過濾無效選項
-    }
-
     function removeWatcher(index) {
       watchersStore.removeWatcher(index)
     }
 
-    // 監聽 store 中 watchers 的變化，同步更新本地的 homeId
     watch(() => watchersStore.watchers, (newWatchers) => {
       if (newWatchers[0]) {
         line24HomeId.value = newWatchers[0].homeId
@@ -301,9 +234,7 @@ export default defineComponent({
     watch(line24HomeId, (newId) => {
       if (newId && newId !== watchersStore.watchers[0]?.homeId) {
         watchersStore.updateWatcher('line24', parseInt(newId))
-        // 手動觸發頁面重新載入數據
         nextTick(() => {
-          // 發送自定義事件通知 IndexPage 重新載入數據
           window.dispatchEvent(new CustomEvent('watcher-updated', {
             detail: { lineParam: 'line24', homeId: parseInt(newId) }
           }))
@@ -314,9 +245,7 @@ export default defineComponent({
     watch(line60HomeId, (newId) => {
       if (newId && newId !== watchersStore.watchers[1]?.homeId) {
         watchersStore.updateWatcher('line60', parseInt(newId))
-        // 手動觸發頁面重新載入數據
         nextTick(() => {
-          // 發送自定義事件通知 IndexPage 重新載入數據
           window.dispatchEvent(new CustomEvent('watcher-updated', {
             detail: { lineParam: 'line60', homeId: parseInt(newId) }
           }))
@@ -330,14 +259,12 @@ export default defineComponent({
       line60HomeId,
       line24Options,
       line60Options,
-      getPointOptions,
       removeWatcher,
       leftDrawerOpen,
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value
       },
       openOfficalWebsite() {
-        // 開啟新北垃圾車清運資訊查詢官方網站
         window.open('https://crd-rubbish.epd.ntpc.gov.tw/dispPageBox/Ntpcepd/NtpMP.aspx?ddsPageID=MAP', '_blank')
       }
     }

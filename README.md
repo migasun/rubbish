@@ -16,28 +16,29 @@ rubbish
 ```
 安裝專案相依套件
 yarn
+
 啟動API
 cd cloudflare/steep-smoke-0e4c
 wrangler dev --remote
 
 啟動前端
-npx quasar dev
+yarn dev
 
 build
-npx quasar build
+yarn build
 
 開啟測試 unit
-npm run test:unit
+yarn test:unit
 
 開啟測試 e2e
-npm run test:e2e
+yarn test:e2e
 ```
 
 
 ## 部署到雲端
 
 ### 部署到 GitHub Pages
-建置輸出會產生於 `dist/spa`。可將此目錄提交至 `gh-pages` 分支，或設定 GitHub Pages 以 `docs` 資料夾為來源。
+建置輸出會產生於 `dist`。可將此目錄提交至 `gh-pages` 分支，或設定 GitHub Pages 以 `docs` 資料夾為來源。
 位於 `.github/workflows/deploy.yml` 的自動化流程會在推送至 `main` 分支時自動部署。
 
 部署完成後，可於倉庫的 **Settings → Pages** 頁面確認網址，通常會是 `https://<USERNAME>.github.io/<REPO>/`。
@@ -51,22 +52,22 @@ cd cloudflare/steep-smoke-0e4c
 # wrangler 提供本機開發伺服器，使用 --remote 可在支援 Web API（如 DOMParser）的環境中執行
 wrangler dev --remote
 # 開發伺服器預設為 http://localhost:8787
-# 前端在執行 `quasar dev` 時會自動連線到此 URL
+# 前端在執行 `yarn dev` 時會自動連線到此 URL
 # 部署至 Cloudflare
 wrangler deploy
 ```
 
-本專案預設使用部署於 `https://steep-smoke-0e4c.vega-0b1.workers.dev` 的 worker。執行 `quasar dev` 時，前端會自動連線到 `http://localhost:8787`。
+本專案預設使用部署於 `https://steep-smoke-0e4c.vega-0b1.workers.dev` 的 worker。執行 `yarn dev` 時，前端會自動連線到 `http://localhost:8787`。
 若自行部署 worker，請複製 `.env.example` 為 `.env`，並更新 `VITE_API_BASE_URL` 指向新的網址，讓前端能透過該 worker 取得垃圾車資料。
 
 ## 自訂設定
-請參考 [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js)。
+請參考 [Configuring Vite](https://vitejs.dev/config/)。
 
 ## 技術架構
 
 ### 前端技術棧
 - **Vue 3** + **Composition API**：現代化的響應式框架
-- **Quasar Framework**：Material Design UI 組件庫
+- **Vuetify**：Material Design UI 組件庫
 - **OpenStreetMap + Leaflet**：免費開源地圖解決方案
 - **Pinia**：狀態管理
 - **Axios**：HTTP 請求處理

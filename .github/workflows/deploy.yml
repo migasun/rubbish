@@ -14,16 +14,16 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'npm'
+          cache: 'yarn'
       - name: Install dependencies
-        run: npm install
+        run: yarn install
       - name: Build
-        run: npx quasar build
+        run: yarn build
       - name: Copy simplified-map.html
-        run: cp simplified-map.html dist/spa/
+        run: cp simplified-map.html dist/
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist/spa
+          publish_dir: ./dist
 
