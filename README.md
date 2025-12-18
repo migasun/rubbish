@@ -1,7 +1,7 @@
 
 # 2025rubbish (rubbish)
 
- rubbish
+rubbish
 
 ## 功能特色
 
