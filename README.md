@@ -67,9 +67,35 @@ wrangler deploy
 ### 前端技術棧
 - **Vue 3** + **Composition API**：現代化的響應式框架
 - **Quasar Framework**：Material Design UI 組件庫
-- **OpenStreetMap + Leaflet**：免費開源地圖解決方案
+- **OpenStreetMap + Leaflet 2.0**：免費開源地圖解決方案
 - **Pinia**：狀態管理
 - **Axios**：HTTP 請求處理
+- **ESLint + Prettier**：代碼風格統一
+- **lodash-es**：性能優化工具函數
+
+### 專案結構
+
+```
+src/
+├── boot/
+│   ├── axios.js           # HTTP 請求配置
+│   └── errorHandler.js    # 全局錯誤處理
+├── components/
+│   ├── ServiceStatus.vue      # 頂部服務狀態卡片
+│   ├── RouteTabs.vue          # 路線選項卡
+│   ├── RefreshProgress.vue    # 自動重新載入進度條
+│   ├── RoutePanel.vue         # 路線面板
+│   ├── OpenStreetMapView.vue  # OpenStreetMap 地圖組件
+│   ├── StationStatus.vue      # 站點狀態
+│   └── StationsList.vue       # 站點列表
+├── composables/
+│   └── useRouteData.js    # 路線數據加載邏輯 (可重用)
+├── pages/
+│   └── IndexPage.vue      # 主頁面
+├── stores/
+│   └── watchers.js        # 監看點狀態管理
+└── ...
+```
 
 ### 地圖組件技術亮點
 
@@ -208,6 +234,179 @@ const line24Options = computed(() => {
 2. 在數據更新後觸發 `auto-reload` 事件
 3. 深度監聽 store 狀態變化
 
+## 設置開發環境
+執行 `npm install` 安裝專案相依套件。本專案提供 `package-lock.json`，建議使用 npm；若有需要也可改用 Yarn。
+
+```bash
+npm install
+# 或
+yarn
+```
+
+### 啟動開發模式（含熱重新載入與錯誤回報）
+```bash
+npx quasar dev
+```
+
+### 建構正式版
+```bash
+npx quasar build
+```
+
+### 代碼品質檢查
+```bash
+# 執行 ESLint 檢查
+npm run lint
+
+# 自動修復 ESLint 問題
+npm run lint:fix
+
+# 格式化代碼
+npm run format
+```
+
+### 環境變量配置
+
+專案使用 `.env` 文件管理環境變量：
+
+| 文件 | 用途 | 說明 |
+|------|------|------|
+| `.env.local` | 開發環境 | API 指向本地 `http://localhost:8787` |
+| `.env.production` | 生產環境 | API 指向 Cloudflare Worker |
+
+**可用變量**：
+- `VITE_API_BASE_URL`：後端 API 地址
+- `VITE_AUTO_RELOAD_INTERVAL`：自動刷新間隔（秒）
+
+## 部署到雲端
+
+### 部署到 GitHub Pages
+
+建置輸出會產生於 `dist/spa`。可將此目錄提交至 `gh-pages` 分支，或設定 GitHub Pages 以 `docs` 資料夾為來源。
+
+#### 自動部署（GitHub Actions）
+
+位於 `.github/workflows/deploy.yml` 的自動化流程會在以下情況自動部署：
+- 推送至 `main` 分支時
+- 手動觸發 workflow（workflow_dispatch）
+
+**GitHub Actions 工作流程**：
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npx quasar build
+      - name: Copy simplified-map.html
+        run: cp simplified-map.html dist/spa/
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist/spa
+```
+
+**首次設定 GitHub Pages**：
+1. 進入倉庫的 **Settings → Pages**
+2. Source 選擇 `gh-pages` 分支
+3. 等待 Actions 完成部署
+4. 網址通常為 `https://<USERNAME>.github.io/<REPO>/`
+
+#### 手動部署
+
+如需手動部署，執行以下步驟：
+
+```bash
+# 1. 建構專案
+npx quasar build
+
+# 2. 複製額外靜態檔案
+cp simplified-map.html dist/spa/
+
+# 3. 部署到 gh-pages 分支（使用 gh-pages 工具）
+npx gh-pages -d dist/spa
+```
+
+### 開發工作流程
+
+#### 完整開發流程
+
+```bash
+# 1. 克隆專案
+git clone https://github.com/<USERNAME>/<REPO>.git
+cd <REPO>
+
+# 2. 安裝依賴
+npm install
+
+# 3. 啟動 Cloudflare Worker 本地開發伺服器（開新終端）
+cd cloudflare/steep-smoke-0e4c
+wrangler dev --remote
+# Worker 會在 http://localhost:8787 運行
+
+# 4. 回到專案根目錄，啟動前端開發伺服器
+cd ../..
+npx quasar dev
+# 前端會在 http://localhost:9000 運行
+
+# 5. 開發完成後，執行代碼品質檢查
+npm run lint
+npm run format
+
+# 6. 提交並推送到 main 分支，自動觸發部署
+git add .
+git commit -m "feat: 新功能描述"
+git push origin main
+```
+
+#### 測試流程
+
+```bash
+# 執行單元測試
+npm run test:unit
+
+# 執行 E2E 測試
+npm run test:e2e
+
+# 執行所有測試
+npm run test
+```
+
+### Cloudflare Worker Proxy
+Worker 原始碼位於 `cloudflare/steep-smoke-0e4c`，執行任何 Wrangler 指令前請先切換到該目錄。
+
+```bash
+cd cloudflare/steep-smoke-0e4c
+# 啟動本機開發伺服器
+# wrangler 提供本機開發伺服器，使用 --remote 可在支援 Web API（如 DOMParser）的環境中執行
+wrangler dev --remote
+# 開發伺服器預設為 http://localhost:8787
+# 前端在執行 `quasar dev` 時會自動連線到此 URL
+# 部署至 Cloudflare
+wrangler deploy
+```
+
+本專案預設使用部署於 `https://steep-smoke-0e4c.vega-0b1.workers.dev` 的 worker。執行 `quasar dev` 時，前端會自動連線到 `http://localhost:8787`。
+若自行部署 worker，請複製 `.env.example` 為 `.env`，並更新 `VITE_API_BASE_URL` 指向新的網址，讓前端能透過該 worker 取得垃圾車資料。
+
+## 自訂設定
+請參考 [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js)。
 
 ## 授權條款
 

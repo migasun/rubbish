@@ -1,0 +1,8 @@
+node_modules
+dist
+.quasar
+*.log
+*.local
+.env
+.env.*
+!.env.example

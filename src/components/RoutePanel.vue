@@ -7,17 +7,6 @@
         <span class="text-h6">{{ routeName }}</span>
       </div>
 
-      <!-- 快速狀態指示器 -->
-      <div class="quick-status">
-        <q-chip
-          :color="getQuickStatusColor()"
-          text-color="white"
-          :icon="getQuickStatusIcon()"
-          size="sm"
-        >
-          {{ getQuickStatusText() }}
-        </q-chip>
-      </div>
     </div>
 
     <!-- 主要狀態區域 -->
@@ -53,19 +42,19 @@
     <q-slide-transition>
       <div v-show="expanded" class="detailed-info">
         <!-- 時間資訊區域 -->
-        <div class="time-info-section q-mb-md">
-          <div class="section-title">⏰ 時間資訊</div>
+        <div class="time-info-section q-mb-sm">
+          <div class="section-title">時間資訊</div>
           <div class="time-info-grid">
-            <div class="time-info-card">
+            <div class="time-info-card" v-if="scheduledTime">
               <div class="time-label">表定時間</div>
               <div class="time-value scheduled-time">
-                {{ formatScheduledTime(unwrap(homePoint.schedule)) }}
+                {{ scheduledTime }}
               </div>
             </div>
-            <div class="time-info-card">
+            <div class="time-info-card" v-if="estimatedTime">
               <div class="time-label">預估到達</div>
               <div class="time-value estimated-time">
-                {{ formatEstimatedTime(unwrap(homePoint.arrival)) }}
+                {{ estimatedTime }}
               </div>
             </div>
             <div class="time-info-card" v-if="getTimeDifference()">
@@ -78,8 +67,8 @@
         </div>
 
         <!-- 路線地圖區域 -->
-        <div class="map-section q-mb-md" v-if="hasStations">
-          <div class="section-title">🗺️ 路線地圖</div>
+        <div class="map-section q-mb-sm" v-if="hasStations">
+          <div class="section-title">路線地圖</div>
           <OpenStreetMapView
             :route-name="routeName"
             :route-data="routeData"
@@ -91,8 +80,8 @@
         </div>
 
         <!-- 地圖連結區域 -->
-        <div class="map-links-section q-mb-md" v-if="hasMapLinks">
-          <div class="section-title">🔗 外部地圖連結</div>
+        <div class="map-links-section q-mb-sm" v-if="hasMapLinks">
+          <div class="section-title">外部地圖連結</div>
           <div class="map-buttons">
             <q-btn
               v-if="arrivalMap"
@@ -104,7 +93,7 @@
               :href="arrivalMap"
               target="_blank"
               no-caps
-              class="q-mr-sm q-mb-xs"
+              class="q-mr-xs q-mb-xs"
             />
             <q-btn
               v-if="homeMap"
@@ -116,7 +105,7 @@
               :href="homeMap"
               target="_blank"
               no-caps
-              class="q-mr-sm q-mb-xs"
+              class="q-mr-xs q-mb-xs"
             />
             <q-btn
               v-if="dataPlacemap"
@@ -135,7 +124,7 @@
 
         <!-- 所有站點列表 -->
         <div class="stations-section" v-if="hasStations">
-          <div class="section-title">🚏 所有站點</div>
+          <div class="section-title">所有站點</div>
           <StationsList
             :line-label="routeName"
             :stations="safeStations"
@@ -239,7 +228,7 @@ export default defineComponent({
       const pointData = gpsData || {
         point: props.arrivalPoint,
         type: 'gps',
-        title: '🚛 垃圾車GPS定位',
+        title: '垃圾車GPS定位',
         description: `垃圾車目前位置 - ${unwrap(props.arrivalPoint.name) || '未知位置'}`
       }
 
@@ -340,28 +329,36 @@ export default defineComponent({
 
     // 格式化表定時間
     const formatScheduledTime = (time) => {
-      if (!time) return '未知'
+      if (!time) return null
       const date = new Date(time)
+      if (Number.isNaN(date.getTime())) return null
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 
     // 格式化預估到達時間
     const formatEstimatedTime = (time) => {
-      if (!time) return '未知'
+      if (!time) return null
       const date = new Date(time)
+      if (Number.isNaN(date.getTime())) return null
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 
     // 獲取時間差異
     const getTimeDifference = () => {
-      if (!props.homePoint.arrival || !props.arrivalPoint.arrival) return null
-      const scheduled = new Date(props.homePoint.arrival)
-      const actual = new Date(props.arrivalPoint.arrival)
+      const scheduledRaw = unwrap(props.homePoint.arrival)
+      const actualRaw = unwrap(props.arrivalPoint.arrival)
+      if (!scheduledRaw || !actualRaw) return null
+
+      const scheduled = new Date(scheduledRaw)
+      const actual = new Date(actualRaw)
+      if (Number.isNaN(scheduled.getTime()) || Number.isNaN(actual.getTime())) return null
+
       const diff = actual - scheduled
 
       // 轉換為分鐘
       const minutes = Math.floor(diff / 1000 / 60)
 
+      if (Number.isNaN(minutes)) return null
       return `${Math.abs(minutes)} 分鐘`
     }
 
@@ -373,6 +370,9 @@ export default defineComponent({
       const minutes = parseInt(diff)
       return minutes < 0 ? 'text-negative' : 'text-positive'
     }
+
+    const scheduledTime = computed(() => formatScheduledTime(unwrap(props.homePoint.schedule)))
+    const estimatedTime = computed(() => formatEstimatedTime(unwrap(props.homePoint.arrival)))
 
     return {
       expanded,
@@ -390,6 +390,8 @@ export default defineComponent({
       safeStations,
       safeCurrentArrivalRank,
       getCenterLocation,
+      scheduledTime,
+      estimatedTime,
       formatScheduledTime,
       formatEstimatedTime,
       getTimeDifference,
@@ -411,7 +413,7 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px; /* 從 16px 20px 減少 */
+  padding: 10px 12px; /* 進一步緊湊 */
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-bottom: 1px solid #dee2e6;
 }
@@ -427,18 +429,18 @@ export default defineComponent({
 }
 
 .main-status-area {
-  padding: 12px; /* 從 20px 大幅減少 */
+  padding: 8px; /* 進一步緊湊 */
   background: #ffffff;
 }
 
 .expand-section {
-  padding: 8px 16px; /* 從 12px 20px 減少 */
+  padding: 6px 12px; /* 進一步緊湊 */
   background: #f8f9fa;
   border-top: 1px solid #dee2e6;
 }
 
 .detailed-info {
-  padding: 12px; /* 從 20px 大幅減少 */
+  padding: 8px; /* 進一步緊湊 */
   background: #fafbfc;
   border-top: 1px solid #dee2e6;
 }
@@ -447,23 +449,23 @@ export default defineComponent({
   font-size: 0.95rem; /* 從 1rem 略減 */
   font-weight: 600;
   color: #495057;
-  margin-bottom: 8px; /* 從 12px 減少 */
-  padding-bottom: 4px; /* 從 6px 減少 */
+  margin-bottom: 6px; /* 進一步緊湊 */
+  padding-bottom: 3px; /* 進一步緊湊 */
   border-bottom: 2px solid #e9ecef;
 }
 
 .map-section {
-  margin-bottom: 16px; /* 從 24px 減少 */
+  margin-bottom: 10px; /* 進一步緊湊 */
 }
 
 .map-links-section {
-  margin-bottom: 16px; /* 從 24px 減少 */
+  margin-bottom: 10px; /* 進一步緊湊 */
 }
 
 .map-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px; /* 從 8px 略減 */
+  gap: 4px; /* 進一步緊湊 */
 }
 
 .stations-section {
@@ -472,7 +474,7 @@ export default defineComponent({
 
 /* 時間資訊區域樣式 */
 .time-info-section {
-  padding: 12px;
+  padding: 8px;
   background: #ffffff;
   border-radius: 8px;
   border: 1px solid #dee2e6;
@@ -481,7 +483,7 @@ export default defineComponent({
 .time-info-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 6px;
 }
 
 .time-info-card {
@@ -493,11 +495,11 @@ export default defineComponent({
 .time-label {
   font-size: 0.85rem;
   color: #868e96;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .time-value {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 500;
 }
 

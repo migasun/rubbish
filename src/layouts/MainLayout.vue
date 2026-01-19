@@ -14,15 +14,13 @@
         <q-toolbar-title>
           垃圾車追蹤APP
         </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
     </q-header>
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
-      <q-list>
+      <q-list dense>
         <q-item-label header>目前監看點</q-item-label>
-        <q-item v-for="(w, index) in watchers" :key="w.lineParam + w.homeId" clickable>
+        <q-item v-for="(w, index) in watchers" :key="w.lineParam + w.homeId" clickable dense>
           <q-item-section>
             <q-item-label>{{ w.label || w.lineParam }}</q-item-label>
             <q-item-label caption>ID: {{ w.homeId }}</q-item-label>
@@ -42,7 +40,7 @@
         <q-separator class="q-my-md" />
 
         <q-item-label header>快速調整預設監看點</q-item-label>
-        <q-item>
+        <q-item dense>
           <q-item-section>
             <q-select
               v-model="line24HomeId"
@@ -57,7 +55,7 @@
             />
           </q-item-section>
         </q-item>
-        <q-item>
+        <q-item dense>
           <q-item-section>
             <q-select
               v-model="line60HomeId"
@@ -80,6 +78,7 @@
           clickable
           @click="openOfficalWebsite"
           class="external-link-item"
+          dense
         >
           <q-item-section avatar>
             <q-icon name="map" color="primary" />
@@ -163,7 +162,7 @@ export default defineComponent({
               latitude: point.latitude?.['#text'],
               fixedPoint: point.fixedPoint?.['#text'],
               isCurrentLocation: isCurrentLocation || hasCarIcon,
-              currentLocationStatus: isCurrentLocation || hasCarIcon ? '🚛 垃圾車目前位置' : '',
+              currentLocationStatus: isCurrentLocation || hasCarIcon ? '垃圾車目前位置' : '',
               raw: point
             }
           })
@@ -230,7 +229,7 @@ export default defineComponent({
         let label = `${point.homeName || point.homeId} - ${point.schedule || '時程未定'}`
 
         if (point.isCurrentLocation) {
-          label = `🚛 ${point.homeName || point.homeId} - ${point.schedule || '時程未定'} (垃圾車目前位置)`
+          label = `${point.homeName || point.homeId} - ${point.schedule || '時程未定'} (垃圾車目前位置)`
         }
 
         label += ` (ID: ${point.homeId})`
@@ -248,7 +247,7 @@ export default defineComponent({
         let label = `${point.homeName || point.homeId} - ${point.schedule || '時程未定'}`
 
         if (point.isCurrentLocation) {
-          label = `🚛 ${point.homeName || point.homeId} - ${point.schedule || '時程未定'} (垃圾車目前位置)`
+          label = `${point.homeName || point.homeId} - ${point.schedule || '時程未定'} (垃圾車目前位置)`
         }
 
         label += ` (ID: ${point.homeId})`
@@ -272,7 +271,7 @@ export default defineComponent({
 
         // 如果是當前垃圾車位置，添加特殊標記
         if (point.isCurrentLocation) {
-          label = `🚛 ${point.homeName || point.homeId} - ${point.schedule || '時程未定'} (垃圾車目前位置)`
+          label = `${point.homeName || point.homeId} - ${point.schedule || '時程未定'} (垃圾車目前位置)`
         }
 
         label += ` (ID: ${point.homeId})`

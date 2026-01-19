@@ -13,13 +13,7 @@
     <!-- 站點狀態 -->
     <div class="station-progress q-mt-md">
       <template v-if="isLate === null || isLate === undefined">
-        <!-- 数据不完整或加载中 -->
-        <div class="status-badge">
-          <q-badge color="grey text-body1">
-
-            isLate: {{ isLate }}
-          </q-badge>
-        </div>
+        <!-- 数据不完整或加载中：保持空白以簡化畫面 -->
       </template>
 
       <template v-else-if="isLate > 0">
@@ -57,7 +51,7 @@
             <q-linear-progress
               :value="progressValue"
               color="primary"
-              size="20px"
+              size="12px"
               class="progress-bar"
               :animation-speed="200"
             >
@@ -93,45 +87,6 @@
       </template>
     </div>
 
-    <!-- 地圖連結 -->
-    <div class="map-links q-mt-md" v-if="showMapLinks">
-      <div class="row q-gutter-sm">
-        <div class="col-auto" v-if="arrivalMap">
-          <q-btn
-            size="sm"
-            color="primary"
-            outline
-            icon="map"
-            label="目前位置"
-            :href="arrivalMap"
-            target="_blank"
-            no-caps
-          />
-        </div>
-        <div class="col-auto" v-if="homeMap">
-          <q-btn
-            size="sm"
-            color="secondary"
-            outline
-            icon="home"
-            label="監看點位置"
-            @click="showHomePointOnMap"
-            no-caps
-          />
-        </div>
-        <div class="col-auto" v-if="dataPlacemap">
-          <q-btn
-            size="sm"
-            color="accent"
-            outline
-            icon="gps_fixed"
-            label="GPS定位"
-            @click="handleGPSLocationClick"
-            no-caps
-          />
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -223,7 +178,7 @@ export default defineComponent({
 
       // 如果包含HTML標籤（垃圾車圖示），顯示為"目前位置"
       if (arrivalText.includes('Icon_CarS.png') || arrivalText.includes('now-at')) {
-        return '🚛 目前位置'
+        return '目前位置'
       }
 
       return arrivalText
@@ -239,7 +194,7 @@ export default defineComponent({
         emit('show-gps-location', {
           point: props.arrivalPoint,
           type: 'gps',
-          title: '🚛 垃圾車GPS定位',
+          title: '垃圾車GPS定位',
           description: `垃圾車目前位置 - ${unwrap(props.arrivalPoint.name) || '未知位置'}`
         })
       } else {

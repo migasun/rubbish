@@ -1,7 +1,7 @@
 <template>
   <div class="route-map-container">
-    <div class="map-header q-pa-md">
-      <div class="text-h6">
+    <div class="map-header q-pa-sm">
+      <div class="text-subtitle1 text-weight-medium">
         <q-icon name="map" class="q-mr-sm" />
         {{ routeName }} 路線地圖
       </div>
@@ -39,8 +39,8 @@
     </div>
 
     <!-- 圖例 -->
-    <div class="map-legend q-pa-md" v-if="mapState === 'ready'">
-      <div class="text-subtitle2 q-mb-sm">圖例說明</div>
+    <div class="map-legend q-pa-sm" v-if="mapState === 'ready'">
+      <div class="text-caption text-weight-medium q-mb-xs">圖例說明</div>
       <div class="legend-items">
         <div class="legend-item">
           <div class="legend-marker current-location"></div>
@@ -458,12 +458,12 @@ export default defineComponent({
 .map-header {
   background-color: #f5f5f5;
   border-bottom: 1px solid #e0e0e0;
-  padding: 8px 12px; /* 從預設的 q-pa-md 減少 */
+  padding: 6px 10px; /* 進一步緊湊 */
 }
 
 .map-wrapper {
   position: relative;
-  height: 300px; /* 從 400px 減少 */
+  height: 280px; /* 進一步緊湊 */
   width: 100%;
 }
 
@@ -493,7 +493,7 @@ export default defineComponent({
 .map-legend {
   background-color: #f9f9f9;
   border-top: 1px solid #e0e0e0;
-  padding: 8px 12px; /* 從預設的 q-pa-md 減少 */
+  padding: 6px 10px; /* 進一步緊湊 */
 }
 
 .legend-items {
@@ -549,7 +549,7 @@ export default defineComponent({
   }
 
   .map-wrapper {
-    height: 250px; /* 手機端進一步減少高度 */
+    height: 220px; /* 手機端進一步減少高度 */
   }
 
   .map-legend {

@@ -1,9 +1,9 @@
 <template>
   <div class="stations-list">
-    <q-card class="q-mt-sm">
-      <q-card-section class="q-pa-sm">
-        <div class="text-subtitle1 q-mb-sm">
-          📍 {{ lineLabel }} - 所有站點列表
+    <q-card class="q-mt-xs">
+      <q-card-section class="q-pa-xs">
+        <div class="text-subtitle1 q-mb-xs">
+          {{ lineLabel }} - 所有站點列表
           <q-badge v-if="currentStation" color="primary" class="q-ml-sm">
             目前位置：第 {{ currentStation }} 站
           </q-badge>
@@ -127,7 +127,7 @@ export default defineComponent({
 
       // 如果包含HTML標籤（垃圾車圖示），顯示為"目前位置"
       if (arrivalText.includes('Icon_CarS.png') || arrivalText.includes('now-at')) {
-        return '🚛 目前位置'
+        return '目前位置'
       }
 
       return arrivalText

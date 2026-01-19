@@ -22,7 +22,7 @@
         </div>
 
         <!-- 自動重新載入進度條 -->
-        <div class="auto-reload-progress q-mb-md" v-if="showAutoReloadProgress">
+        <div class="auto-reload-progress q-mb-sm" v-if="showAutoReloadProgress">
           <q-card class="progress-card">
             <q-card-section class="q-pa-sm">
               <div class="progress-content">
@@ -41,23 +41,6 @@
           </q-card>
         </div>
 
-        <!-- 頂部狀態概覽 -->
-        <div class="status-overview">
-          <q-card class="status-card">
-            <q-card-section class="text-center q-pa-md">
-              <div class="service-status">
-                <q-icon name="local_shipping" size="2rem" color="primary" />
-                <div class="status-text q-mt-sm">
-                  <div class="text-h6">今日服務狀態</div>
-                  <q-badge :color="getServiceColor()" class="text-h6 q-mt-xs">
-                    {{ currentServiceStatus }}
-                  </q-badge>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
         <!-- 主要監看路線 -->
         <div class="main-routes">
           <div class="route-tabs">
@@ -67,9 +50,10 @@
               indicator-color="primary"
               active-color="primary"
               align="justify"
+              dense
             >
-              <q-tab name="noon" label="🌞 中午清運" class="route-tab" />
-              <q-tab name="evening" label="🌙 晚上清運" class="route-tab" />
+              <q-tab name="noon" label="中午清運" class="route-tab" />
+              <q-tab name="evening" label="晚上清運" class="route-tab" />
               <q-tab
                 v-for="(watcher, idx) in extraWatchers"
                 :key="`extra-${idx}`"
@@ -270,7 +254,7 @@ export default defineComponent({
     // 新增：額外 Tab 標籤生成
     function getExtraTabLabel(idx) {
       const watcher = watchersStore.watchers.slice(2)[idx]
-      return watcher ? `📍 ${watcher.label.split(' - ')[0]}` : '未知路線'
+      return watcher ? `${watcher.label.split(' - ')[0]}` : '未知路線'
     }
 
     // 初始化 extraWatchers 的函数
@@ -712,12 +696,12 @@ export default defineComponent({
   /* 容器樣式 - 大幅減少間距 */
   max-width: 1200px;
   margin: 0 auto;
-  padding: 8px; /* 從 16px 減少到 8px */
+  padding: 6px; /* 從 16px 減少到 6px */
 }
 
 .status-overview {
   /* 頂部狀態卡片樣式 */
-  margin-bottom: 12px; /* 從 24px 大幅減少到 12px */
+  margin-bottom: 8px; /* 進一步緊湊 */
 }
 
 .status-card {
@@ -745,12 +729,12 @@ export default defineComponent({
   background-color: #ffffff;
   border-radius: 6px; /* 從 8px 減少 */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* 減少陰影 */
-  padding: 8px; /* 從 16px 大幅減少到 8px */
+  padding: 6px; /* 進一步緊湊 */
 }
 
 .route-tabs {
   /* 路線選項卡樣式 */
-  margin-bottom: 8px; /* 從 16px 減少到 8px */
+  margin-bottom: 4px; /* 進一步緊湊 */
 }
 
 .route-tab-container {
@@ -784,15 +768,15 @@ export default defineComponent({
   /* 下拉刷新提示樣式 */
   position: relative;
   overflow: hidden;
-  padding: 8px; /* 從 12px 減少 */
+  padding: 6px; /* 進一步緊湊 */
   border-radius: 6px; /* 從 8px 略減 */
   background-color: #f1f8e9;
-  margin-bottom: 8px; /* 從 16px 減少 */
+  margin-bottom: 6px; /* 進一步緊湊 */
 }
 
 .auto-reload-progress {
   /* 自動重新載入進度條樣式 */
-  margin-bottom: 8px; /* 減少間距 */
+  margin-bottom: 6px; /* 進一步緊湊 */
 }
 
 .progress-card {
