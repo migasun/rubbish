@@ -11,6 +11,9 @@ rubbish
 - 🔄 **自動更新**：每 30 秒自動刷新垃圾車位置
 - 📍 **智慧監看點**：快速調整和切換監看站點
 - 🎯 **無 API 金鑰**：使用免費的 OpenStreetMap 服務
+- [網頁顯示地圖.黑暗執行緒](https://blog.darkthread.net/blog/leaflet-w-openstreetmap-example/?fbclid=IwY2xjawQ3-3lleHRuA2FlbQIxMQBicmlkETE3WHQ5TnJtSHltNEQ2Tk1Zc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHih1D3npKeI564DIDDM-ScInxanektd5Wn2DBi2v6MDR3GNKVradl4W6bWGR_aem_zKiUK487YBZs-o3agr9UXg)
+- [阿油leaflet教學](https://dowyuu.github.io/program/2021/03/22/Leaflet-note/)
+
 
 ## 設置開發環境
 ```
