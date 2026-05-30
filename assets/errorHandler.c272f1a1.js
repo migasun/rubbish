@@ -1,1 +1,0 @@
-import{b as n}from"./index.acdc26b6.js";var s=n(({app:o})=>{console.log=()=>{},console.debug=()=>{},console.info=()=>{},o.config.errorHandler=(r,l,e)=>{console.error("Global error:",r),console.error("Error info:",e)}});export{s as default};
