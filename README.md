@@ -21,7 +21,7 @@ rubbish
 yarn
 啟動API
 cd cloudflare/steep-smoke-0e4c
-wrangler dev --remote
+npx wrangler dev --remote
 
 啟動前端
 npx quasar dev
