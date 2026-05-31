@@ -49,31 +49,6 @@
     <!-- 站點資訊區域 -->
     <q-slide-transition>
       <div v-show="expanded" class="detailed-info">
-        <!-- 時間資訊區域 -->
-        <div class="time-info-section q-mb-sm">
-          <div class="section-title">時間資訊</div>
-          <div class="time-info-grid">
-            <div v-if="scheduledTime" class="time-info-card">
-              <div class="time-label">表定時間</div>
-              <div class="time-value scheduled-time">
-                {{ scheduledTime }}
-              </div>
-            </div>
-            <div v-if="estimatedTime" class="time-info-card">
-              <div class="time-label">預估到達</div>
-              <div class="time-value estimated-time">
-                {{ estimatedTime }}
-              </div>
-            </div>
-            <div v-if="getTimeDifference()" class="time-info-card">
-              <div class="time-label">時間差異</div>
-              <div class="time-value" :class="getTimeDifferenceClass()">
-                {{ getTimeDifference() }}
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- 所有站點列表 -->
         <div v-if="hasStations" class="stations-section">
           <div class="section-title">所有站點</div>
@@ -348,54 +323,7 @@ export default defineComponent({
       return defaultCenter
     }
 
-    // 格式化表定時間
-    const formatScheduledTime = (time) => {
-      if (!time) return null
-      const date = new Date(time)
-      if (Number.isNaN(date.getTime())) return null
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-
-    // 格式化預估到達時間
-    const formatEstimatedTime = (time) => {
-      if (!time) return null
-      const date = new Date(time)
-      if (Number.isNaN(date.getTime())) return null
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-
-    // 獲取時間差異
-    const getTimeDifference = () => {
-      const scheduledRaw = unwrap(props.homePoint.arrival)
-      const actualRaw = unwrap(props.arrivalPoint.arrival)
-      if (!scheduledRaw || !actualRaw) return null
-
-      const scheduled = new Date(scheduledRaw)
-      const actual = new Date(actualRaw)
-      if (Number.isNaN(scheduled.getTime()) || Number.isNaN(actual.getTime())) return null
-
-      const diff = actual - scheduled
-
-      // 轉換為分鐘
-      const minutes = Math.floor(diff / 1000 / 60)
-
-      if (Number.isNaN(minutes)) return null
-      return `${Math.abs(minutes)} 分鐘`
-    }
-
-    // 獲取時間差異的樣式
-    const getTimeDifferenceClass = () => {
-      const diff = getTimeDifference()
-      if (!diff) return ''
-
-      const minutes = parseInt(diff)
-      return minutes < 0 ? 'text-negative' : 'text-positive'
-    }
-
-            const scheduledTime = computed(() => formatScheduledTime(unwrap(props.homePoint.schedule)))
-    const estimatedTime = computed(() => formatEstimatedTime(unwrap(props.homePoint.arrival)))
-
-        const handleZoomMapClick = () => {
+    const handleZoomMapClick = () => {
       highlightPoint.value = null
       openMapDialog()
     }
@@ -422,13 +350,7 @@ export default defineComponent({
       safeRouteData,
       safeStations,
       safeCurrentArrivalRank,
-      getCenterLocation,
-      scheduledTime,
-      estimatedTime,
-      formatScheduledTime,
-      formatEstimatedTime,
-      getTimeDifference,
-      getTimeDifferenceClass
+      getCenterLocation
     }
   }
 })
@@ -535,36 +457,7 @@ export default defineComponent({
   /* 站點區域不需要額外樣式，StationsList 組件會處理 */
 }
 
-/* 時間資訊區域樣式 */
-.time-info-section {
-  padding: 8px;
-  background: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
 
-.time-info-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.time-info-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.time-label {
-  font-size: 0.85rem;
-  color: #868e96;
-  margin-bottom: 2px;
-}
-
-.time-value {
-  font-size: 1rem;
-  font-weight: 500;
-}
 
 /* 響應式設計 - 手機端進一步優化 */
 @media (max-width: 600px) {
@@ -602,10 +495,6 @@ export default defineComponent({
     font-size: 0.9rem;
     margin-bottom: 6px;
     padding-bottom: 3px;
-  }
-
-  .time-info-grid {
-    grid-template-columns: 1fr;
   }
 }
 </style>
