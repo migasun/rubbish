@@ -16,25 +16,51 @@ rubbish
 
 
 ## 設置開發環境
-```
-安裝專案相依套件
+
+### 必要步驟
+```bash
+# 1. 安裝專案相依套件
 yarn
-啟動API
+
+# 2. 啟動後端 API（在新終端機）
 cd cloudflare/steep-smoke-0e4c
 npx wrangler dev --remote
+# 開發伺服器將在 http://localhost:8787 啟動
 
-啟動前端
-npx quasar dev
+# 3. 啟動前端（在另一個新終端機）
+# ⚠️ 重要：必須設置 VITE_API_BASE_URL 環境變數指向本地開發伺服器
+VITE_API_BASE_URL=http://localhost:8787 npm run dev
 
-build
-npx quasar build
+# 4. 執行測試
+npm run test:unit     # 單元測試
+npm run test:e2e      # E2E 測試
 
-開啟測試 unit
-npm run test:unit
-
-開啟測試 e2e
-npm run test:e2e
+# 5. 構建生產版本
+npm run build
 ```
+
+### ⚠️ 開發時的重要注意事項
+
+**在開發環境（`npm run dev`）中，必須手動設置 `VITE_API_BASE_URL` 環境變數：**
+
+- **Windows (PowerShell)**：
+  ```powershell
+  $env:VITE_API_BASE_URL = 'http://localhost:8787'
+  npm run dev
+  ```
+
+- **Windows (Command Prompt)**：
+  ```cmd
+  set VITE_API_BASE_URL=http://localhost:8787
+  npm run dev
+  ```
+
+- **macOS / Linux**：
+  ```bash
+  VITE_API_BASE_URL=http://localhost:8787 npm run dev
+  ```
+
+若未設置此環境變數，前端將使用預設的 Cloudflare Worker URL（`https://steep-smoke-0e4c.vega-0b1.workers.dev`），這可能導致 CORS 或連線問題。
 
 
 ## 部署到雲端
@@ -50,17 +76,35 @@ Worker 原始碼位於 `cloudflare/steep-smoke-0e4c`，執行任何 Wrangler 指
 
 ```bash
 cd cloudflare/steep-smoke-0e4c
+
 # 啟動本機開發伺服器
 # wrangler 提供本機開發伺服器，使用 --remote 可在支援 Web API（如 DOMParser）的環境中執行
 wrangler dev --remote
 # 開發伺服器預設為 http://localhost:8787
-# 前端在執行 `quasar dev` 時會自動連線到此 URL
+
 # 部署至 Cloudflare
 wrangler deploy
 ```
 
-本專案預設使用部署於 `https://steep-smoke-0e4c.vega-0b1.workers.dev` 的 worker。執行 `quasar dev` 時，前端會自動連線到 `http://localhost:8787`。
-若自行部署 worker，請複製 `.env.example` 為 `.env`，並更新 `VITE_API_BASE_URL` 指向新的網址，讓前端能透過該 worker 取得垃圾車資料。
+### API 端點配置
+
+**開發環境**：
+- 本地開發伺服器：`http://localhost:8787`
+- 設置方法：執行 `VITE_API_BASE_URL=http://localhost:8787 npm run dev`
+
+**生產環境**（GitHub Pages）：
+- Cloudflare Worker：`https://steep-smoke-0e4c.vega-0b1.workers.dev`
+- 自動使用此 URL（無須額外配置）
+
+**自訂 Worker 部署**：
+若自行部署 worker 到不同的 URL，在開發環境中執行：
+```bash
+VITE_API_BASE_URL=<YOUR_WORKER_URL> npm run dev
+```
+或在生產構建時：
+```bash
+VITE_API_BASE_URL=<YOUR_WORKER_URL> npm run build
+```
 
 ## 自訂設定
 請參考 [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js)。
