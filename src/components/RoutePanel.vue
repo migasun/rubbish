@@ -141,6 +141,7 @@ import { defineComponent, ref, computed } from 'vue'
 import StationStatus from './StationStatus.vue'
 import StationsList from './StationsList.vue'
 import OpenStreetMapView from './OpenStreetMapView.vue'
+import { unwrap } from 'src/utils/xml'
 
 export default defineComponent({
   name: 'RoutePanel',
@@ -193,9 +194,6 @@ export default defineComponent({
   setup(props) {
     const expanded = ref(false)
     const highlightPoint = ref(null)
-
-    // 輔助函數：提取值
-    const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
 
     // 處理顯示監看點在地圖上的事件
     const handleShowHomePointOnMap = (pointData) => {
@@ -256,27 +254,6 @@ export default defineComponent({
     const hasStations = computed(() => {
       return !!(props.routeData?.points?.point && Array.isArray(props.routeData.points.point))
     })
-
-    const getQuickStatusColor = () => {
-      if (props.isLate === null || props.isLate === undefined) return 'grey'
-      if (props.isLate > 0) return 'negative'
-      if (props.isLate === 0) return 'positive'
-      return 'primary'
-    }
-
-    const getQuickStatusIcon = () => {
-      if (props.isLate === null || props.isLate === undefined) return 'help_outline'
-      if (props.isLate > 0) return 'check_circle'
-      if (props.isLate === 0) return 'location_on'
-      return 'schedule'
-    }
-
-    const getQuickStatusText = () => {
-      if (props.isLate === null || props.isLate === undefined) return '載入中'
-      if (props.isLate > 0) return `已離開 ${props.isLate} 站`
-      if (props.isLate === 0) return '垃圾車到了！'
-      return `還有 ${-props.isLate} 站`
-    }
 
     const toggleExpanded = () => {
       expanded.value = !expanded.value
@@ -381,9 +358,6 @@ export default defineComponent({
       handleGPSLocation,
       hasMapLinks,
       hasStations,
-      getQuickStatusColor,
-      getQuickStatusIcon,
-      getQuickStatusText,
       toggleExpanded,
       unwrap,
       safeRouteData,
@@ -422,10 +396,6 @@ export default defineComponent({
   display: flex;
   align-items: center;
   font-weight: 600;
-}
-
-.quick-status {
-  flex-shrink: 0;
 }
 
 .main-status-area {
@@ -515,10 +485,6 @@ export default defineComponent({
     align-items: flex-start;
     gap: 8px; /* 從 12px 減少 */
     padding: 10px 12px; /* 進一步減少 */
-  }
-
-  .quick-status {
-    align-self: stretch;
   }
 
   .main-status-area {

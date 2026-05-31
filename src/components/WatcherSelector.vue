@@ -124,7 +124,7 @@ export default defineComponent({
         console.log('Complete data structure:', JSON.stringify(data, null, 2))
 
         // 加強數據結構分析
-        function analyzeDataStructure(obj, path = '') {
+        const analyzeDataStructure = (obj, path = '') => {
           const analysis = []
           for (const [key, value] of Object.entries(obj)) {
             const currentPath = path ? `${path}.${key}` : key
@@ -187,7 +187,7 @@ export default defineComponent({
         else {
           console.log('Using fallback deep search...')
           // 函數：遞歸搜尋所有可能的監看點數據
-          function deepFindHomes(obj, currentPath = '') {
+          const deepFindHomes = (obj, currentPath = '') => {
             const foundHomes = []
 
             if (!obj || typeof obj !== 'object') return foundHomes
@@ -244,13 +244,13 @@ export default defineComponent({
         if (homes.length > 0) {
           const points = homes.map(home => {
             // 處理新的 API 數據格式（從 #text 屬性中提取值）
-            let id, name, schedule;
+            let id, name, schedule
 
             if (home.id && home.name && home.schedule) {
               // 新的 API 格式：從 #text 屬性中提取
-              id = home.id;
-              name = home.name;
-              schedule = home.schedule || home.arrival;
+              id = home.id
+              name = home.name
+              schedule = home.schedule || home.arrival
             } else {
               // 舊格式的備用處理
               const attributes = home['@attributes'] || home.attributes || home

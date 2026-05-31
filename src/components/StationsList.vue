@@ -69,6 +69,7 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
+import { unwrap } from 'src/utils/xml'
 
 export default defineComponent({
   name: 'StationsList',
@@ -89,8 +90,6 @@ export default defineComponent({
   },
 
   setup(props) {
-    const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
-
     const currentStation = computed(() => {
       return props.currentArrivalRank > 0 ? props.currentArrivalRank : null
     })
@@ -133,21 +132,6 @@ export default defineComponent({
       return arrivalText
     }
 
-    const hasValidCoordinates = (station) => {
-      const lon = unwrap(station.longitude)
-      const lat = unwrap(station.latitude)
-      return lon && lat && lon !== '0' && lat !== '0'
-    }
-
-    const openMap = (station) => {
-      const lon = unwrap(station.longitude)
-      const lat = unwrap(station.latitude)
-      if (lon && lat) {
-        const mapUrl = `https://maps.nlsc.gov.tw/go/${lon}/${lat}/15/EMAP_B/DMAPS,ROAD`
-        window.open(mapUrl, '_blank')
-      }
-    }
-
     const hasArrivalTime = (station) => {
       const arrival = unwrap(station.arrival)
       return arrival && arrival !== '未定' && !arrival.includes('Icon_CarS.png') && !arrival.includes('now-at')
@@ -168,8 +152,6 @@ export default defineComponent({
       getStationBadgeColor,
       getStationTextColor,
       formatArrivalTime,
-      hasValidCoordinates,
-      openMap,
       hasArrivalTime,
       getShortName
     }

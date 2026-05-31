@@ -76,13 +76,14 @@ import '../css/leaflet-fixes.scss'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+import { unwrap } from 'src/utils/xml'
 
 // 修復 Leaflet 預設標記圖標問題
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
+  shadowUrl: markerShadow
 })
 
 export default defineComponent({
@@ -125,9 +126,6 @@ export default defineComponent({
     const map = ref(null)
     const markersLayer = ref(null)
     const highlightMarker = ref(null)
-
-    // 輔助函數：提取值
-    const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
 
     // 檢查是否有有效數據
     const hasValidData = computed(() => {
@@ -272,19 +270,19 @@ export default defineComponent({
           ? props.routeData.points.point
           : [props.routeData.points.point]
 
-        const homePointId = parseInt(props.homePoint.id?.['#text'] || props.homePoint.id || 0)
-        const arrivalPointId = parseInt(props.arrivalPoint.id?.['#text'] || props.arrivalPoint.id || 0)
+        const homePointId = parseInt(unwrap(props.homePoint.id) || 0)
+        const arrivalPointId = parseInt(unwrap(props.arrivalPoint.id) || 0)
 
         points.forEach((point, index) => {
-          const lat = parseFloat(point.latitude?.['#text'] || point.latitude || 0)
-          const lng = parseFloat(point.longitude?.['#text'] || point.longitude || 0)
+          const lat = parseFloat(unwrap(point.latitude) || 0)
+          const lng = parseFloat(unwrap(point.longitude) || 0)
 
           if (lat === 0 || lng === 0) return
 
-          const pointId = parseInt(point.id?.['#text'] || point.id || 0)
-          const pointName = point.name?.['#text'] || point.name || `站點 ${index + 1}`
-          const schedule = point.schedule?.['#text'] || point.schedule || '時程未定'
-          const rank = point.rank?.['#text'] || point.rank || (index + 1)
+          const pointId = parseInt(unwrap(point.id) || 0)
+          const pointName = unwrap(point.name) || `站點 ${index + 1}`
+          const schedule = unwrap(point.schedule) || '時程未定'
+          const rank = unwrap(point.rank) || (index + 1)
 
           // 創建帶編號的自定義標記
           let markerHtml, className, title
@@ -311,7 +309,7 @@ export default defineComponent({
             title = `📍 監看點 - ${pointName}`
           } else {
             // 普通站點 - 根據清運狀態使用不同顏色
-            const currentArrivalRank = parseInt(props.arrivalPoint.rank?.['#text'] || props.arrivalPoint.rank || 0)
+            const currentArrivalRank = parseInt(unwrap(props.arrivalPoint.rank) || 0)
             const pointRank = parseInt(rank)
 
             let markerClass, statusText, statusIcon
@@ -571,12 +569,6 @@ export default defineComponent({
     height: 12px;
   }
 
-  .custom-marker {
-    width: 28px;
-    height: 36px;
-    font-size: 0.8rem;
-  }
-
   .marker-icon {
     font-size: 1rem;
     top: 2px;
@@ -595,12 +587,6 @@ export default defineComponent({
     border-width: 2px;
   }
 
-  .custom-marker::after {
-    border-left-width: 6px;
-    border-right-width: 6px;
-    border-top-width: 10px;
-    bottom: -10px;
-  }
 }
 
 /* Leaflet 樣式修復已移至 src/css/leaflet-fixes.scss */

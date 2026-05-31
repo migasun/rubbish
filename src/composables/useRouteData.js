@@ -1,16 +1,10 @@
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import axios from 'axios'
 import { API_BASE_URL } from 'src/boot/axios'
 import { useWatchersStore } from 'src/stores/watchers'
+import { unwrap } from 'src/utils/xml'
 
-/**
- * 解包 XML 格式的值
- * @param {any} v - 可能包含 '#text' 屬性的值
- * @returns {any} - 解包後的值
- */
-export function unwrap(v) {
-  return (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
-}
+export { unwrap } from 'src/utils/xml'
 
 /**
  * 路線數據管理 composable

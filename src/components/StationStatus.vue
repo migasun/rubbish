@@ -92,6 +92,7 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
+import { unwrap } from 'src/utils/xml'
 
 export default defineComponent({
   name: 'StationStatus',
@@ -134,8 +135,6 @@ export default defineComponent({
   },
 
   setup(props, { emit }) {
-    const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
-
     // 顯示監看點在地圖上
     const showHomePointOnMap = () => {
       console.log('顯示監看點在地圖上:', props.homePoint)

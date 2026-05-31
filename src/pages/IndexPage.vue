@@ -55,12 +55,11 @@
               <q-tab name="noon" label="中午清運" class="route-tab" />
               <q-tab name="evening" label="晚上清運" class="route-tab" />
               <q-tab
-                v-for="(watcher, idx) in extraWatchers"
-                :key="`extra-${idx}`"
-                :name="`extra-${idx}`"
-                :label="getExtraTabLabel(idx)"
+                v-for="tab in extraWatcherTabs"
+                :key="tab.name"
+                :name="tab.name"
+                :label="tab.label"
                 class="route-tab"
-                v-if="watchersStore.watchers.length > 2 && watchersStore.watchers[idx + 2]"
               />
             </q-tabs>
           </div>
@@ -105,22 +104,21 @@
 
             <!-- 額外監看點 -->
             <q-tab-panel
-              v-for="(w, idx) in extraWatchers"
-              :key="`panel-${idx}`"
-              :name="`extra-${idx}`"
+              v-for="tab in extraWatcherTabs"
+              :key="`panel-${tab.name}`"
+              :name="tab.name"
               class="route-panel"
-              v-if="watchersStore.watchers.length > 2 && watchersStore.watchers[idx + 2]"
             >
               <RoutePanel
-                :route-name="watchersStore.watchers[idx + 2]?.label || '未知路線'"
+                :route-name="tab.config?.label || '未知路線'"
                 route-icon="location_on"
-                :route-data="w.data?.value || {}"
-                :home-point="w.home_point?.value || {}"
-                :arrival-point="w.arrival_point?.value || {}"
-                :is-late="w.isLate?.value || 0"
-                :arrival-map="w.arrival_map?.value || ''"
-                :home-map="w.home_map?.value || ''"
-                :data-placemap="w.dataPlacemap?.value || ''"
+                :route-data="tab.watcher.data?.value || {}"
+                :home-point="tab.watcher.home_point?.value || {}"
+                :arrival-point="tab.watcher.arrival_point?.value || {}"
+                :is-late="tab.watcher.isLate?.value || 0"
+                :arrival-map="tab.watcher.arrival_map?.value || ''"
+                :home-map="tab.watcher.home_map?.value || ''"
+                :data-placemap="tab.watcher.dataPlacemap?.value || ''"
               />
             </q-tab-panel>
           </q-tab-panels>
@@ -133,25 +131,20 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
-import { onBeforeMount, ref, watch, onUnmounted } from "vue";
-import axios from "axios";
-import { API_BASE_URL } from "src/boot/axios";
-import { useWatchersStore } from "src/stores/watchers";
-import StationStatus from "src/components/StationStatus.vue";
-import StationsList from "src/components/StationsList.vue";
-import RoutePanel from "src/components/RoutePanel.vue";
+import { onBeforeMount, ref, watch, onUnmounted } from 'vue'
+import axios from 'axios'
+import { API_BASE_URL } from 'src/boot/axios'
+import { useWatchersStore } from 'src/stores/watchers'
+import RoutePanel from 'src/components/RoutePanel.vue'
 
 export default defineComponent({
   name: 'IndexPage',
 
   components: {
-    StationStatus,
-    StationsList,
     RoutePanel
   },
 
   setup() {
-    const unwrap = (v) => (v && typeof v === 'object' && '#text' in v) ? v['#text'] : v
     // 添加缺失的 showRefreshHint 變數
     const showRefreshHint = ref(true)
     const showAutoReloadProgress = ref(false) // 新增：自動重新載入進度條顯示狀態
@@ -162,24 +155,40 @@ export default defineComponent({
     const arrival24 = ref({})
     const arrival_point24 = ref({})
     const home_point24 = ref({})
-    const arrival_map24 = ref("")
-    const home_map24 = ref("")
-    const isLate24 = ref(null);
-    const data24placemap = ref("");
+    const arrival_map24 = ref('')
+    const home_map24 = ref('')
+    const isLate24 = ref(null)
+    const data24placemap = ref('')
     const data60 = ref({})
     const arrival60 = ref({})
     const arrival_point60 = ref({})
     const home_point60 = ref({})
-    const arrival_map60 = ref("")
-    const home_map60 = ref("")
-    const isLate60 = ref(null);
-    const data60placemap = ref("");
-    const inService = ref("有垃圾車");
-    const watchersStore = useWatchersStore();
-    const extraWatchers = ref([]);
+    const arrival_map60 = ref('')
+    const home_map60 = ref('')
+    const isLate60 = ref(null)
+    const data60placemap = ref('')
+    const inService = ref('有垃圾車')
+    const watchersStore = useWatchersStore()
+    const extraWatchers = ref([])
 
     // 新增：Tab 狀態管理
-    const activeTab = ref('noon');
+    const activeTab = ref('noon')
+
+    const extraWatcherTabs = computed(() => {
+      return extraWatchers.value
+        .map((watcher, idx) => {
+          const config = watchersStore.watchers[idx + 2]
+          if (!config) return null
+
+          return {
+            name: `extra-${idx}`,
+            label: config.label ? config.label.split(' - ')[0] : '未知路線',
+            config,
+            watcher
+          }
+        })
+        .filter(Boolean)
+    })
 
     // 新增：動態計算當前 tab 的 home_point
     const currentHomePoint = computed(() => {
@@ -251,25 +260,19 @@ export default defineComponent({
       return 'positive'
     }
 
-    // 新增：額外 Tab 標籤生成
-    function getExtraTabLabel(idx) {
-      const watcher = watchersStore.watchers.slice(2)[idx]
-      return watcher ? `${watcher.label.split(' - ')[0]}` : '未知路線'
-    }
-
     // 初始化 extraWatchers 的函数
     function initializeExtraWatchers() {
-      const extraCount = Math.max(0, watchersStore.watchers.length - 2);
+      const extraCount = Math.max(0, watchersStore.watchers.length - 2)
       extraWatchers.value = Array.from({ length: extraCount }, () => ({
         data: ref({}),
         arrival: ref({}),
         arrival_point: ref({}),
         home_point: ref({}),
-        arrival_map: ref(""),
-        home_map: ref(""),
+        arrival_map: ref(''),
+        home_map: ref(''),
         isLate: ref(null),
-        dataPlacemap: ref("")
-      }));
+        dataPlacemap: ref('')
+      }))
     }
 
     watch(
@@ -284,7 +287,7 @@ export default defineComponent({
           }, 100)
         }
       }
-    );
+    )
 
     // 新增：自動重新載入計時器相關變數
     let autoReloadTimer = null
@@ -599,7 +602,7 @@ export default defineComponent({
 
     // 新增：切換到下一個 Tab
     function switchToNextTab() {
-      const tabs = ['noon', 'evening', ...extraWatchers.value.map((_, idx) => `extra-${idx}`).filter((_, idx) => watchersStore.watchers.slice(2)[idx])]
+      const tabs = ['noon', 'evening', ...extraWatcherTabs.value.map(tab => tab.name)]
       const currentIndex = tabs.indexOf(activeTab.value)
       const nextIndex = (currentIndex + 1) % tabs.length
       activeTab.value = tabs[nextIndex]
@@ -607,7 +610,7 @@ export default defineComponent({
 
     // 新增：切換到上一個 Tab
     function switchToPreviousTab() {
-      const tabs = ['noon', 'evening', ...extraWatchers.value.map((_, idx) => `extra-${idx}`).filter((_, idx) => watchersStore.watchers.slice(2)[idx])]
+      const tabs = ['noon', 'evening', ...extraWatcherTabs.value.map(tab => tab.name)]
       const currentIndex = tabs.indexOf(activeTab.value)
       const previousIndex = currentIndex === 0 ? tabs.length - 1 : currentIndex - 1
       activeTab.value = tabs[previousIndex]
@@ -635,7 +638,6 @@ export default defineComponent({
 
     return {
       // 數據
-      unwrap,
       showRefreshHint,
       showAutoReloadProgress, // 新增：自動重新載入進度條顯示狀態
       autoReloadCountdown, // 新增：倒數秒數
@@ -660,6 +662,7 @@ export default defineComponent({
       inService,
       watchersStore,
       extraWatchers,
+      extraWatcherTabs,
       activeTab,
       bar,
       // 新增：動態計算的當前 tab 數據
@@ -670,7 +673,6 @@ export default defineComponent({
 
       // 方法
       getServiceColor,
-      getExtraTabLabel,
       refresh,
       loadData,
       handleRefreshClick, // 新增：刷新按鈕點擊處理函數
