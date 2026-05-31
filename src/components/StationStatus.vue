@@ -4,9 +4,14 @@
     <div class="status-info">
       <div class="point-name">{{ unwrap(homePoint.name) }}</div>
       <div class="schedule-info">
-        表定<q-badge color="secondary text-h5"> {{ unwrap(homePoint.schedule) }}</q-badge>
-        <span class="arrival-text">預估</span>
-        <q-badge color="secondary text-h5">{{ formatArrivalDisplay(unwrap(homePoint.arrival)) }}到達</q-badge>
+        <template v-if="unwrap(homePoint.schedule) === '本日無清運' || unwrap(homePoint.schedule) === '停止收運'">
+          <q-badge color="negative text-h5" class="q-pa-xs">{{ unwrap(homePoint.schedule) }}</q-badge>
+        </template>
+        <template v-else>
+          表定<q-badge color="secondary text-h5"> {{ unwrap(homePoint.schedule) }}</q-badge>
+          <span class="arrival-text">預估</span>
+          <q-badge color="secondary text-h5">{{ formatArrivalDisplay(unwrap(homePoint.arrival)) }}到達</q-badge>
+        </template>
       </div>
     </div>
 

@@ -820,7 +820,7 @@ export default defineComponent({
   overflow: hidden;
   padding: 6px; /* 進一步緊湊 */
   border-radius: 6px; /* 從 8px 略減 */
-  background-color: #f1f8e9;
+  background-color: rgba(7, 98, 147, 0.08);
   margin-bottom: 6px; /* 進一步緊湊 */
 }
 
