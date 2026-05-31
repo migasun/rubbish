@@ -74,7 +74,8 @@
           >
             <!-- 中午路線 -->
             <q-tab-panel name="noon" class="route-panel">
-                            <RoutePanel
+              <RoutePanel
+                v-model:expanded="globalExpanded"
                 route-name="中午清運路線"
                 route-icon="wb_sunny"
                 :route-data="data24"
@@ -84,14 +85,15 @@
                 :arrival-map="arrival_map24"
                 :home-map="home_map24"
                 :data-placemap="data24placemap"
-                @map-interaction-change="handleMapInteractionChange"
+                @open-map="handleOpenMap"
                 @refresh="handleRefreshClick"
               />
             </q-tab-panel>
 
             <!-- 晚上路線 -->
             <q-tab-panel name="evening" class="route-panel">
-                            <RoutePanel
+              <RoutePanel
+                v-model:expanded="globalExpanded"
                 route-name="晚上清運路線"
                 route-icon="nights_stay"
                 :route-data="data60"
@@ -101,7 +103,7 @@
                 :arrival-map="arrival_map60"
                 :home-map="home_map60"
                 :data-placemap="data60placemap"
-                @map-interaction-change="handleMapInteractionChange"
+                @open-map="handleOpenMap"
                 @refresh="handleRefreshClick"
               />
             </q-tab-panel>
@@ -113,7 +115,8 @@
               :name="tab.name"
               class="route-panel"
             >
-                            <RoutePanel
+              <RoutePanel
+                v-model:expanded="globalExpanded"
                 :route-name="tab.config?.label || '未知路線'"
                 route-icon="location_on"
                 :route-data="tab.watcher.data?.value || {}"
@@ -123,7 +126,7 @@
                 :arrival-map="tab.watcher.arrival_map?.value || ''"
                 :home-map="tab.watcher.home_map?.value || ''"
                 :data-placemap="tab.watcher.dataPlacemap?.value || ''"
-                @map-interaction-change="handleMapInteractionChange"
+                @open-map="handleOpenMap"
                 @refresh="handleRefreshClick"
               />
             </q-tab-panel>
@@ -132,25 +135,94 @@
 
       </div>
     </q-pull-to-refresh>
+
+    <!-- 全局地圖對話框 -->
+    <q-dialog
+      v-model="globalMapOpen"
+      maximized
+      persistent
+      no-refocus
+      no-route-dismiss
+      transition-show="fade"
+      transition-hide="fade"
+      @show="handleMapDialogShow"
+      @hide="handleMapDialogHide"
+    >
+      <q-card class="map-dialog-card">
+        <q-toolbar class="map-dialog-toolbar">
+          <div class="flex items-center">
+            <q-icon name="map" color="primary" size="sm" class="q-mr-sm" />
+            <q-toolbar-title class="map-dialog-title gt-xs">{{ currentRouteName }} 路線地圖</q-toolbar-title>
+          </div>
+
+          <!-- 時段快速切換按鈕 -->
+          <div class="modal-route-toggle q-mx-md">
+            <q-btn-toggle
+              v-model="activeTab"
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              toggle-text-color="white"
+              dense
+              unelevated
+              :options="[
+                { label: '中午清運', value: 'noon' },
+                { label: '晚上清運', value: 'evening' }
+              ]"
+            />
+          </div>
+
+          <q-btn
+            flat
+            round
+            dense
+            icon="close"
+            aria-label="關閉路線地圖"
+            @click="closeMapDialog"
+          />
+        </q-toolbar>
+
+        <q-card-section class="map-dialog-body">
+          <OpenStreetMapView
+            v-if="globalMapOpen"
+            class="dialog-map"
+            :route-name="currentRouteName"
+            :route-data="currentRouteData"
+            :home-point="currentHomePoint"
+            :arrival-point="currentArrivalPoint"
+            :center-location="getCenterLocation()"
+            :highlight-point="globalHighlightPoint"
+            @refresh="handleRefreshClick"
+          />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, nextTick } from 'vue'
 import { onBeforeMount, ref, watch, onUnmounted } from 'vue'
 import axios from 'axios'
 import { API_BASE_URL } from 'src/boot/axios'
 import { useWatchersStore } from 'src/stores/watchers'
 import RoutePanel from 'src/components/RoutePanel.vue'
+import OpenStreetMapView from 'src/components/OpenStreetMapView.vue'
+import { unwrap } from 'src/utils/xml'
 
 export default defineComponent({
   name: 'IndexPage',
 
   components: {
-    RoutePanel
+    RoutePanel,
+    OpenStreetMapView
   },
 
   setup() {
+    const globalExpanded = ref(false)
+    const globalMapOpen = ref(false)
+    const globalHighlightPoint = ref(null)
+
     // 添加缺失的 showRefreshHint 變數
     const showRefreshHint = ref(true)
     const showAutoReloadProgress = ref(false) // 新增：自動重新載入進度條顯示狀態
@@ -176,7 +248,7 @@ export default defineComponent({
     const inService = ref('有垃圾車')
     const watchersStore = useWatchersStore()
     const extraWatchers = ref([])
-    const mapInteractionLocked = ref(false)
+    const mapInteractionLocked = computed(() => globalMapOpen.value)
 
     // 新增：Tab 狀態管理
     const activeTab = ref('noon')
@@ -223,7 +295,6 @@ export default defineComponent({
       return {}
     })
 
-    // 新增：動態計算當前 tab 的 route_data
     const currentRouteData = computed(() => {
       if (activeTab.value === 'noon') {
         return data24.value
@@ -235,6 +306,47 @@ export default defineComponent({
       }
       return {}
     })
+
+    const currentRouteName = computed(() => {
+      if (activeTab.value === 'noon') {
+        return '中午清運路線'
+      } else if (activeTab.value === 'evening') {
+        return '晚上清運路線'
+      } else if (activeTab.value.startsWith('extra-')) {
+        const idx = parseInt(activeTab.value.replace('extra-', ''))
+        return extraWatcherTabs.value[idx]?.config?.label || '未知路線'
+      }
+      return '路線'
+    })
+
+    const getCenterLocation = () => {
+      const defaultCenter = {
+        lat: 24.9896,
+        lng: 121.4953
+      }
+
+      const homePoint = currentHomePoint.value
+      if (homePoint?.latitude && homePoint?.longitude) {
+        const lat = parseFloat(unwrap(homePoint.latitude) || 0)
+        const lng = parseFloat(unwrap(homePoint.longitude) || 0)
+
+        if (lat !== 0 && lng !== 0) {
+          return { lat, lng }
+        }
+      }
+
+      const arrivalPoint = currentArrivalPoint.value
+      if (arrivalPoint?.latitude && arrivalPoint?.longitude) {
+        const lat = parseFloat(unwrap(arrivalPoint.latitude) || 0)
+        const lng = parseFloat(unwrap(arrivalPoint.longitude) || 0)
+
+        if (lat !== 0 && lng !== 0) {
+          return { lat, lng }
+        }
+      }
+
+      return defaultCenter
+    }
 
     // 新增：動態計算當前服務狀態（根據當前 tab 的 home_point）
     const currentServiceStatus = computed(() => {
@@ -327,16 +439,75 @@ export default defineComponent({
       }, (RELOAD_INTERVAL - 5) * 1000) // 25秒後開始倒數
     }
 
-    function handleMapInteractionChange(isOpen) {
-      mapInteractionLocked.value = isOpen
+    let savedScrollTop = 0
+    let openFrame = null
 
-      if (isOpen) {
-        clearAutoReloadTimers()
-        return
+    const captureScrollPosition = () => {
+      if (typeof window === 'undefined') return
+      savedScrollTop = window.scrollY ||
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        0
+    }
+
+    const restoreScrollPosition = () => {
+      if (typeof window === 'undefined') return
+      const scrollTop = savedScrollTop
+      nextTick(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            window.scrollTo({
+              top: scrollTop,
+              left: 0,
+              behavior: 'auto'
+            })
+          })
+        })
+      })
+    }
+
+    const handleOpenMap = (payload) => {
+      console.log('IndexPage 接收到開啟地圖請求:', payload)
+      captureScrollPosition()
+
+      if (openFrame !== null) {
+        cancelAnimationFrame(openFrame)
       }
 
-      scheduleAutoReloadTimer()
+      openFrame = requestAnimationFrame(() => {
+        globalMapOpen.value = true
+        openFrame = null
+        if (payload) {
+          globalHighlightPoint.value = payload
+          // 延遲一點確保地圖已渲染
+          setTimeout(() => {
+            globalHighlightPoint.value = { ...payload, timestamp: Date.now() }
+          }, 300)
+        } else {
+          globalHighlightPoint.value = null
+        }
+      })
     }
+
+    const closeMapDialog = () => {
+      globalMapOpen.value = false
+    }
+
+    const handleMapDialogShow = () => {
+      // no-op, mapInteractionLocked handles timer freezing
+    }
+
+    const handleMapDialogHide = () => {
+      restoreScrollPosition()
+    }
+
+    watch(mapInteractionLocked, (locked) => {
+      if (locked) {
+        clearAutoReloadTimers()
+      } else {
+        scheduleAutoReloadTimer()
+      }
+    })
 
     // 新增：開始自動重新載入倒數計時
     function startAutoReloadCountdown() {
@@ -717,12 +888,20 @@ export default defineComponent({
       currentArrivalPoint,
       currentRouteData,
       currentServiceStatus,
+      currentRouteName,
+      getCenterLocation,
+      globalExpanded,
+      globalMapOpen,
+      globalHighlightPoint,
 
       // 方法
       getServiceColor,
       refresh,
       loadData,
-      handleMapInteractionChange,
+      handleOpenMap,
+      closeMapDialog,
+      handleMapDialogShow,
+      handleMapDialogHide,
       handleRefreshClick, // 新增：刷新按鈕點擊處理函數
       // 新增：滑動相關方法
       handleTouchStart,
@@ -890,5 +1069,77 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   gap: 4px;
+}
+
+/* 全局地圖對話框樣式 */
+.map-dialog-card {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+}
+
+.map-dialog-toolbar {
+  flex: 0 0 auto;
+  background: #ffffff;
+  border-bottom: 1px solid #dee2e6;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.map-dialog-body {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  display: flex;
+}
+
+.dialog-map {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.dialog-map .map-header {
+  display: none;
+}
+
+.dialog-map .map-wrapper {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+/* 工具列中的路線快速切換按鈕 */
+.modal-route-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.modal-route-toggle .q-btn {
+  font-weight: 600;
+  padding: 4px 12px;
+}
+
+/* 響應式排版：防止窄屏時工具列溢出 */
+@media (max-width: 600px) {
+  .map-dialog-toolbar {
+    padding: 6px 10px;
+  }
+  
+  /* 在窄屏下隱藏標題，確保按鈕有足夠的空間且不擠壓 */
+  .map-dialog-title {
+    display: none !important;
+  }
+  
+  .modal-route-toggle {
+    margin-left: 0;
+    margin-right: auto;
+  }
 }
 </style>
