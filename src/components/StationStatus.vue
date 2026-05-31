@@ -97,8 +97,6 @@ import { unwrap } from 'src/utils/xml'
 export default defineComponent({
   name: 'StationStatus',
 
-  emits: ['show-home-point-on-map', 'show-gps-location'],
-
   props: {
     homePoint: {
       type: Object,
@@ -133,6 +131,8 @@ export default defineComponent({
       default: true
     }
   },
+
+  emits: ['show-home-point-on-map', 'show-gps-location'],
 
   setup(props, { emit }) {
     // 顯示監看點在地圖上

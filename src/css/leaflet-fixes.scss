@@ -165,3 +165,124 @@
   border: none !important;
   box-shadow: none !important;
 }
+
+/* Leaflet Popup 內置按鈕交互樣式 */
+.map-popup-content {
+  font-family: inherit;
+  
+  .map-popup-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    border-top: 1px solid #eeeeee;
+    padding-top: 8px;
+  }
+
+  .map-popup-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #ffffff !important;
+    background-color: #1976D2; /* 主色藍 */
+    border-radius: 4px;
+    text-decoration: none !important;
+    transition: background-color 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+
+    &:hover {
+      background-color: #1565C0;
+    }
+
+    &.secondary {
+      background-color: #26A69A; /* 次色綠 */
+      &:hover {
+        background-color: #00897B;
+      }
+    }
+
+    .material-icons {
+      font-size: 14px;
+      margin-right: 4px;
+    }
+  }
+}
+
+/* Floating Map Controls Toolbar */
+.map-floating-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 6px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  
+  .floating-btn {
+    width: 36px;
+    height: 36px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, background-color 0.2s;
+    
+    &:hover:not([disabled]) {
+      transform: scale(1.05);
+    }
+  }
+}
+
+/* Custom Garbage Truck SVG Marker */
+.truck-marker-svg-container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  width: 48px !important;
+  height: 48px !important;
+
+  .marker-number {
+    position: absolute !important;
+    bottom: -8px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background-color: #2E7D32 !important; /* 生態綠 */
+    color: white !important;
+    font-size: 0.65rem !important;
+    font-weight: bold !important;
+    padding: 1px 4px !important;
+    border-radius: 4px !important;
+    border: 1px solid white !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+    z-index: 3 !important;
+    min-width: unset !important;
+    text-align: center !important;
+  }
+}
+
+/* Flashing warning light on the truck cabin */
+@keyframes warning-flash {
+  0%, 100% { 
+    fill: #FF9800; 
+    filter: drop-shadow(0 0 1px #FF9800); 
+  }
+  50% { 
+    fill: #FFD54F; 
+    filter: drop-shadow(0 0 4px #FFD54F); 
+  }
+}
+
+.warning-light {
+  animation: warning-flash 0.8s infinite;
+}
+
+
+

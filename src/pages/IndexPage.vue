@@ -5,16 +5,16 @@
     size="10px"
   />
   <q-page class="index-page">
-    <q-pull-to-refresh @refresh="refresh" color="primary">
+    <q-pull-to-refresh color="primary" @refresh="refresh">
       <div class="page-container">
 
         <!-- 下拉刷新提示 -->
-        <div class="refresh-hint q-pa-sm text-center" v-if="showRefreshHint">
+        <div v-if="showRefreshHint" class="refresh-hint q-pa-sm text-center">
           <q-btn
             flat
             no-caps
-            @click="handleRefreshClick"
             class="refresh-hint-btn"
+            @click="handleRefreshClick"
           >
             <q-icon name="refresh" size="sm" color="primary" class="q-mr-xs" />
             <small class="text-grey-7">下拉可更新垃圾車位置資訊</small>
@@ -22,7 +22,7 @@
         </div>
 
         <!-- 自動重新載入進度條 -->
-        <div class="auto-reload-progress q-mb-sm" v-if="showAutoReloadProgress">
+        <div v-if="showAutoReloadProgress" class="auto-reload-progress q-mb-sm">
           <q-card class="progress-card">
             <q-card-section class="q-pa-sm">
               <div class="progress-content">
@@ -74,7 +74,7 @@
           >
             <!-- 中午路線 -->
             <q-tab-panel name="noon" class="route-panel">
-              <RoutePanel
+                            <RoutePanel
                 route-name="中午清運路線"
                 route-icon="wb_sunny"
                 :route-data="data24"
@@ -84,12 +84,14 @@
                 :arrival-map="arrival_map24"
                 :home-map="home_map24"
                 :data-placemap="data24placemap"
+                @map-interaction-change="handleMapInteractionChange"
+                @refresh="handleRefreshClick"
               />
             </q-tab-panel>
 
             <!-- 晚上路線 -->
             <q-tab-panel name="evening" class="route-panel">
-              <RoutePanel
+                            <RoutePanel
                 route-name="晚上清運路線"
                 route-icon="nights_stay"
                 :route-data="data60"
@@ -99,6 +101,8 @@
                 :arrival-map="arrival_map60"
                 :home-map="home_map60"
                 :data-placemap="data60placemap"
+                @map-interaction-change="handleMapInteractionChange"
+                @refresh="handleRefreshClick"
               />
             </q-tab-panel>
 
@@ -109,7 +113,7 @@
               :name="tab.name"
               class="route-panel"
             >
-              <RoutePanel
+                            <RoutePanel
                 :route-name="tab.config?.label || '未知路線'"
                 route-icon="location_on"
                 :route-data="tab.watcher.data?.value || {}"
@@ -119,6 +123,8 @@
                 :arrival-map="tab.watcher.arrival_map?.value || ''"
                 :home-map="tab.watcher.home_map?.value || ''"
                 :data-placemap="tab.watcher.dataPlacemap?.value || ''"
+                @map-interaction-change="handleMapInteractionChange"
+                @refresh="handleRefreshClick"
               />
             </q-tab-panel>
           </q-tab-panels>
@@ -170,6 +176,7 @@ export default defineComponent({
     const inService = ref('有垃圾車')
     const watchersStore = useWatchersStore()
     const extraWatchers = ref([])
+    const mapInteractionLocked = ref(false)
 
     // 新增：Tab 狀態管理
     const activeTab = ref('noon')
@@ -294,8 +301,47 @@ export default defineComponent({
     let countdownTimer = null
     const RELOAD_INTERVAL = 30 // 30秒間隔
 
+    function clearAutoReloadTimers() {
+      if (autoReloadTimer) {
+        clearInterval(autoReloadTimer)
+        autoReloadTimer = null
+      }
+      if (countdownTimer) {
+        clearInterval(countdownTimer)
+        countdownTimer = null
+      }
+      showAutoReloadProgress.value = false
+      autoReloadCountdown.value = 5
+      autoReloadProgress.value = 0
+    }
+
+    function scheduleAutoReloadTimer() {
+      if (mapInteractionLocked.value) return
+
+      if (autoReloadTimer) {
+        clearInterval(autoReloadTimer)
+      }
+
+      autoReloadTimer = setInterval(() => {
+        startAutoReloadCountdown()
+      }, (RELOAD_INTERVAL - 5) * 1000) // 25秒後開始倒數
+    }
+
+    function handleMapInteractionChange(isOpen) {
+      mapInteractionLocked.value = isOpen
+
+      if (isOpen) {
+        clearAutoReloadTimers()
+        return
+      }
+
+      scheduleAutoReloadTimer()
+    }
+
     // 新增：開始自動重新載入倒數計時
     function startAutoReloadCountdown() {
+      if (mapInteractionLocked.value) return
+
       // 清除現有的倒數計時器，避免重複
       if (countdownTimer) {
         clearInterval(countdownTimer)
@@ -314,9 +360,16 @@ export default defineComponent({
           clearInterval(countdownTimer)
           countdownTimer = null
           showAutoReloadProgress.value = false
-          loadData()
+          if (!mapInteractionLocked.value) {
+            loadData()
+          }
         }
       }, 1000)
+    }
+
+    function handleWatcherUpdated(event) {
+      console.log('Received watcher update event:', event.detail)
+      loadData()
     }
 
     onBeforeMount(() => {
@@ -328,31 +381,24 @@ export default defineComponent({
       loadData()
 
       // 修改：改用新的計時器邏輯
-      autoReloadTimer = setInterval(() => {
-        startAutoReloadCountdown()
-      }, (RELOAD_INTERVAL - 5) * 1000) // 25秒後開始倒數
+      scheduleAutoReloadTimer()
 
       // 監聽來自 MainLayout 的更新事件
-      window.addEventListener('watcher-updated', (event) => {
-        console.log('Received watcher update event:', event.detail)
-        // 重新載入數據以反映更新
-        loadData()
-      })
+      window.addEventListener('watcher-updated', handleWatcherUpdated)
     })
 
     // 在組件卸載時清理事件監聽器和計時器
     onUnmounted(() => {
-      window.removeEventListener('watcher-updated', loadData)
-      // 新增：清理計時器
-      if (autoReloadTimer) {
-        clearInterval(autoReloadTimer)
-      }
-      if (countdownTimer) {
-        clearInterval(countdownTimer)
-      }
+      window.removeEventListener('watcher-updated', handleWatcherUpdated)
+      clearAutoReloadTimers()
     })
 
     function refresh(done) {
+      if (mapInteractionLocked.value) {
+        done()
+        return
+      }
+
       loadData().finally(done)
     }
 
@@ -536,6 +582,8 @@ export default defineComponent({
 
     // 新增：處理滑動開始
     function handleTouchStart(e) {
+      if (mapInteractionLocked.value) return
+
       touchStartX.value = e.touches[0].clientX
       touchStartY.value = e.touches[0].clientY
       touchStartTime.value = Date.now()
@@ -544,6 +592,7 @@ export default defineComponent({
 
     // 新增：處理滑動移動
     function handleTouchMove(e) {
+      if (mapInteractionLocked.value) return
       if (!touchStartX.value) return
 
       touchEndX.value = e.touches[0].clientX
@@ -562,6 +611,11 @@ export default defineComponent({
 
     // 新增：處理滑動結束
     function handleTouchEnd() {
+      if (mapInteractionLocked.value) {
+        resetTouchState()
+        return
+      }
+
       const touchEndTime = Date.now()
       const touchDuration = touchEndTime - touchStartTime.value
 
@@ -619,20 +673,12 @@ export default defineComponent({
     // 新增：處理刷新按鈕點擊
     function handleRefreshClick() {
       // 重置自動重新載入計時器，避免衝突
-      if (autoReloadTimer) {
-        clearInterval(autoReloadTimer)
-      }
-      if (countdownTimer) {
-        clearInterval(countdownTimer)
-        countdownTimer = null
-      }
+      clearAutoReloadTimers()
 
       // 執行刷新
       refresh(() => {
         // 刷新完成後，重新啟動自動重新載入計時器
-        autoReloadTimer = setInterval(() => {
-          startAutoReloadCountdown()
-        }, (RELOAD_INTERVAL - 5) * 1000) // 25秒後開始倒數
+        scheduleAutoReloadTimer()
       })
     }
 
@@ -663,6 +709,7 @@ export default defineComponent({
       watchersStore,
       extraWatchers,
       extraWatcherTabs,
+      mapInteractionLocked,
       activeTab,
       bar,
       // 新增：動態計算的當前 tab 數據
@@ -675,6 +722,7 @@ export default defineComponent({
       getServiceColor,
       refresh,
       loadData,
+      handleMapInteractionChange,
       handleRefreshClick, // 新增：刷新按鈕點擊處理函數
       // 新增：滑動相關方法
       handleTouchStart,

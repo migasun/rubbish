@@ -2,12 +2,12 @@
   <div class="route-tabs">
     <q-tabs
       :model-value="modelValue"
-      @update:model-value="$emit('update:modelValue', $event)"
       class="route-tab-container"
       indicator-color="primary"
       active-color="primary"
       align="justify"
       dense
+      @update:model-value="$emit('update:modelValue', $event)"
     >
       <q-tab name="noon" label="中午清運" class="route-tab" />
       <q-tab name="evening" label="晚上清運" class="route-tab" />

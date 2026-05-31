@@ -1,5 +1,5 @@
 <template>
-  <div class="auto-reload-progress q-mb-md" v-if="show">
+  <div v-if="show" class="auto-reload-progress q-mb-md">
     <q-card class="progress-card">
       <q-card-section class="q-pa-sm">
         <div class="progress-content">

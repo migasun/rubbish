@@ -25,39 +25,47 @@
       />
     </div>
 
-    <!-- 展開/收起按鈕 -->
-    <div class="expand-section">
+        <!-- 獨立功能按鈕 -->
+    <div class="route-actions">
       <q-btn
-        @click="toggleExpanded"
-        :icon="expanded ? 'expand_less' : 'expand_more'"
-        :label="expanded ? '收起詳細資訊' : '查看所有站點'"
-        flat
         color="primary"
-        class="full-width"
+        outline
+        :icon="expanded ? 'expand_less' : 'expand_more'"
+        :label="expanded ? '收起站點' : '查看所有站點'"
         no-caps
+        @click="toggleExpanded"
+      />
+      <q-btn
+        color="primary"
+        unelevated
+        icon="map"
+        label="開啟路線地圖"
+        no-caps
+        :disable="!hasStations"
+        @click="handleZoomMapClick"
       />
     </div>
 
-    <!-- 詳細資訊區域 -->
+    <!-- 站點資訊區域 -->
     <q-slide-transition>
       <div v-show="expanded" class="detailed-info">
         <!-- 時間資訊區域 -->
         <div class="time-info-section q-mb-sm">
           <div class="section-title">時間資訊</div>
           <div class="time-info-grid">
-            <div class="time-info-card" v-if="scheduledTime">
+            <div v-if="scheduledTime" class="time-info-card">
               <div class="time-label">表定時間</div>
               <div class="time-value scheduled-time">
                 {{ scheduledTime }}
               </div>
             </div>
-            <div class="time-info-card" v-if="estimatedTime">
+            <div v-if="estimatedTime" class="time-info-card">
               <div class="time-label">預估到達</div>
               <div class="time-value estimated-time">
                 {{ estimatedTime }}
               </div>
             </div>
-            <div class="time-info-card" v-if="getTimeDifference()">
+            <div v-if="getTimeDifference()" class="time-info-card">
               <div class="time-label">時間差異</div>
               <div class="time-value" :class="getTimeDifferenceClass()">
                 {{ getTimeDifference() }}
@@ -66,64 +74,8 @@
           </div>
         </div>
 
-        <!-- 路線地圖區域 -->
-        <div class="map-section q-mb-sm" v-if="hasStations">
-          <div class="section-title">路線地圖</div>
-          <OpenStreetMapView
-            :route-name="routeName"
-            :route-data="routeData"
-            :home-point="homePoint"
-            :arrival-point="arrivalPoint"
-            :center-location="getCenterLocation()"
-            :highlight-point="highlightPoint"
-          />
-        </div>
-
-        <!-- 地圖連結區域 -->
-        <div class="map-links-section q-mb-sm" v-if="hasMapLinks">
-          <div class="section-title">外部地圖連結</div>
-          <div class="map-buttons">
-            <q-btn
-              v-if="arrivalMap"
-              size="sm"
-              color="primary"
-              outline
-              icon="my_location"
-              label="垃圾車位置"
-              :href="arrivalMap"
-              target="_blank"
-              no-caps
-              class="q-mr-xs q-mb-xs"
-            />
-            <q-btn
-              v-if="homeMap"
-              size="sm"
-              color="secondary"
-              outline
-              icon="home"
-              label="監看點位置"
-              :href="homeMap"
-              target="_blank"
-              no-caps
-              class="q-mr-xs q-mb-xs"
-            />
-            <q-btn
-              v-if="dataPlacemap"
-              size="sm"
-              color="accent"
-              outline
-              icon="gps_fixed"
-              label="GPS定位"
-              :href="dataPlacemap"
-              target="_blank"
-              no-caps
-              class="q-mb-xs"
-            />
-          </div>
-        </div>
-
         <!-- 所有站點列表 -->
-        <div class="stations-section" v-if="hasStations">
+        <div v-if="hasStations" class="stations-section">
           <div class="section-title">所有站點</div>
           <StationsList
             :line-label="routeName"
@@ -133,11 +85,51 @@
         </div>
       </div>
     </q-slide-transition>
+
+    <q-dialog
+      v-model="mapDialogOpen"
+      maximized
+      persistent
+      no-refocus
+      no-route-dismiss
+      transition-show="fade"
+      transition-hide="fade"
+      @show="handleMapDialogShow"
+      @hide="handleMapDialogHide"
+    >
+      <q-card class="map-dialog-card">
+        <q-toolbar class="map-dialog-toolbar">
+          <q-icon name="map" color="primary" size="sm" class="q-mr-sm" />
+          <q-toolbar-title>{{ routeName }} 路線地圖</q-toolbar-title>
+          <q-btn
+            flat
+            round
+            dense
+            icon="close"
+            aria-label="關閉路線地圖"
+            @click="closeMapDialog"
+          />
+        </q-toolbar>
+
+                <q-card-section class="map-dialog-body">
+          <OpenStreetMapView
+            class="dialog-map"
+            :route-name="routeName"
+            :route-data="routeData"
+            :home-point="homePoint"
+            :arrival-point="arrivalPoint"
+            :center-location="getCenterLocation()"
+            :highlight-point="highlightPoint"
+            @refresh="handleRefresh"
+          />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script>
-import { defineComponent, ref, computed } from 'vue'
+import { defineComponent, ref, computed, nextTick } from 'vue'
 import StationStatus from './StationStatus.vue'
 import StationsList from './StationsList.vue'
 import OpenStreetMapView from './OpenStreetMapView.vue'
@@ -191,18 +183,72 @@ export default defineComponent({
     }
   },
 
-  setup(props) {
+    emits: ['map-interaction-change', 'refresh'],
+
+  setup(props, { emit }) {
     const expanded = ref(false)
     const highlightPoint = ref(null)
+    const mapDialogOpen = ref(false)
+    let savedScrollTop = 0
+    let openFrame = null
+
+    const captureScrollPosition = () => {
+      if (typeof window === 'undefined') return
+
+      savedScrollTop = window.scrollY ||
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        0
+    }
+
+    const restoreScrollPosition = () => {
+      if (typeof window === 'undefined') return
+
+      const scrollTop = savedScrollTop
+      nextTick(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            window.scrollTo({
+              top: scrollTop,
+              left: 0,
+              behavior: 'auto'
+            })
+          })
+        })
+      })
+    }
+
+    const openMapDialog = () => {
+      captureScrollPosition()
+
+      if (openFrame !== null) {
+        cancelAnimationFrame(openFrame)
+      }
+
+      openFrame = requestAnimationFrame(() => {
+        mapDialogOpen.value = true
+        openFrame = null
+      })
+    }
+
+    const closeMapDialog = () => {
+      mapDialogOpen.value = false
+    }
+
+    const handleMapDialogShow = () => {
+      emit('map-interaction-change', true)
+    }
+
+    const handleMapDialogHide = () => {
+      emit('map-interaction-change', false)
+      restoreScrollPosition()
+    }
 
     // 處理顯示監看點在地圖上的事件
     const handleShowHomePointOnMap = (pointData) => {
       console.log('RoutePanel 接收到顯示監看點請求:', pointData)
 
-      // 如果詳細資訊區域未展開，先展開它
-      if (!expanded.value) {
-        expanded.value = true
-      }
+      openMapDialog()
 
       // 設置高亮點數據
       highlightPoint.value = pointData
@@ -234,6 +280,8 @@ export default defineComponent({
       if (pointData.point && pointData.point.id) {
         console.log('設置GPS高亮點:', pointData)
 
+        openMapDialog()
+
         // 設置高亮點數據
         highlightPoint.value = pointData
 
@@ -246,10 +294,6 @@ export default defineComponent({
         // 這裡可以添加用戶提示，比如使用Quasar的Notify
       }
     }
-
-    const hasMapLinks = computed(() => {
-      return !!(props.arrivalMap || props.homeMap || props.dataPlacemap)
-    })
 
     const hasStations = computed(() => {
       return !!(props.routeData?.points?.point && Array.isArray(props.routeData.points.point))
@@ -348,15 +392,30 @@ export default defineComponent({
       return minutes < 0 ? 'text-negative' : 'text-positive'
     }
 
-    const scheduledTime = computed(() => formatScheduledTime(unwrap(props.homePoint.schedule)))
+            const scheduledTime = computed(() => formatScheduledTime(unwrap(props.homePoint.schedule)))
     const estimatedTime = computed(() => formatEstimatedTime(unwrap(props.homePoint.arrival)))
 
-    return {
+        const handleZoomMapClick = () => {
+      highlightPoint.value = null
+      openMapDialog()
+    }
+
+    const handleRefresh = () => {
+      emit('refresh')
+    }
+
+        return {
+      handleZoomMapClick,
+      handleRefresh,
       expanded,
+      mapDialogOpen,
       highlightPoint,
+      openMapDialog,
+      closeMapDialog,
+      handleMapDialogShow,
+      handleMapDialogHide,
       handleShowHomePointOnMap,
       handleGPSLocation,
-      hasMapLinks,
       hasStations,
       toggleExpanded,
       unwrap,
@@ -403,10 +462,19 @@ export default defineComponent({
   background: #ffffff;
 }
 
-.expand-section {
-  padding: 6px 12px; /* 進一步緊湊 */
+.route-actions {
+  padding: 8px 12px;
   background: #f8f9fa;
   border-top: 1px solid #dee2e6;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.route-actions :deep(.q-btn) {
+  min-height: 40px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 .detailed-info {
@@ -424,18 +492,43 @@ export default defineComponent({
   border-bottom: 2px solid #e9ecef;
 }
 
-.map-section {
-  margin-bottom: 10px; /* 進一步緊湊 */
-}
-
-.map-links-section {
-  margin-bottom: 10px; /* 進一步緊湊 */
-}
-
-.map-buttons {
+.map-dialog-card {
+  height: 100vh;
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px; /* 進一步緊湊 */
+  flex-direction: column;
+  border-radius: 0;
+}
+
+.map-dialog-toolbar {
+  flex: 0 0 auto;
+  background: #ffffff;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.map-dialog-body {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  display: flex;
+}
+
+.dialog-map {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.dialog-map :deep(.map-header) {
+  display: none;
+}
+
+.dialog-map :deep(.map-wrapper) {
+  flex: 1;
+  height: auto;
+  min-height: 0;
 }
 
 .stations-section {
@@ -491,8 +584,14 @@ export default defineComponent({
     padding: 8px; /* 手機端進一步減少 */
   }
 
-  .expand-section {
-    padding: 6px 12px;
+    .route-actions {
+    padding: 6px 10px;
+    gap: 8px;
+  }
+  
+  .route-actions :deep(.q-btn) {
+    min-height: 36px;
+    font-size: 0.85rem;
   }
 
   .detailed-info {
@@ -503,19 +602,6 @@ export default defineComponent({
     font-size: 0.9rem;
     margin-bottom: 6px;
     padding-bottom: 3px;
-  }
-
-  .map-section {
-    margin-bottom: 12px;
-  }
-
-  .map-links-section {
-    margin-bottom: 12px;
-  }
-
-  .map-buttons {
-    justify-content: center;
-    gap: 4px;
   }
 
   .time-info-grid {

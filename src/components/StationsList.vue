@@ -39,7 +39,7 @@
                   >
                     {{ unwrap(station.rank) }}
                   </q-badge>
-                  <div class="station-status" v-if="isCurrentStation(station)">
+                  <div v-if="isCurrentStation(station)" class="station-status">
                     <q-icon name="location_on" color="primary" size="xs" />
                   </div>
                 </div>
@@ -53,7 +53,7 @@
                 <div class="station-times q-mt-xs">
                   <div class="time-compact">
                     <div class="schedule-time">{{ unwrap(station.schedule) }}</div>
-                    <div class="arrival-time" v-if="hasArrivalTime(station)">
+                    <div v-if="hasArrivalTime(station)" class="arrival-time">
                       {{ formatArrivalTime(unwrap(station.arrival)) }}
                     </div>
                   </div>

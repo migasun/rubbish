@@ -40,9 +40,9 @@
             <q-btn
               color="primary"
               label="新增"
-              @click="addWatcher"
               :disable="!selectedLineParam || !selectedHomeId"
               class="full-width"
+              @click="addWatcher"
             />
           </div>
         </div>

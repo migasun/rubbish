@@ -25,7 +25,7 @@
             <q-item-label>{{ w.label || w.lineParam }}</q-item-label>
             <q-item-label caption>ID: {{ w.homeId }}</q-item-label>
           </q-item-section>
-          <q-item-section side v-if="index >= 2">
+          <q-item-section v-if="index >= 2" side>
             <q-btn
               flat
               round
@@ -76,9 +76,9 @@
         <q-item-label header>相關連結</q-item-label>
         <q-item
           clickable
-          @click="openOfficalWebsite"
           class="external-link-item"
           dense
+          @click="openOfficalWebsite"
         >
           <q-item-section avatar>
             <q-icon name="map" color="primary" />
