@@ -1,0 +1,1 @@
+import{D as e}from"./index-CPcl5auJ.js";var t=e(({app:e})=>{console.log=()=>{},console.debug=()=>{},console.info=()=>{},e.config.errorHandler=(e,t,n)=>{console.error(`Global error:`,e),console.error(`Error info:`,n)}});export{t as default};
