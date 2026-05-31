@@ -323,7 +323,7 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .drawer-header {
-  background: linear-gradient(135deg, #003366 0%, #981b1e 100%);
+  background: linear-gradient(135deg, #076293 0%, #B83900 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
