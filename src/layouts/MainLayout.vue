@@ -11,6 +11,10 @@
           @click="toggleLeftDrawer"
         />
 
+        <q-avatar size="32px" class="q-ml-sm logo-toolbar-avatar">
+          <img src="~assets/app-logo.png" alt="Logo">
+        </q-avatar>
+
         <q-toolbar-title>
           垃圾車追蹤APP
         </q-toolbar-title>
@@ -18,8 +22,16 @@
     </q-header>
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
-      <q-list dense>
-        <q-item-label header>目前監看點</q-item-label>
+      <div class="drawer-header q-pa-md text-center text-white">
+        <q-avatar size="72px" class="q-mb-sm shadow-2 logo-avatar">
+          <img src="~assets/app-logo.png" alt="App Logo">
+        </q-avatar>
+        <div class="text-subtitle1 text-weight-bold">垃圾車即時追蹤</div>
+        <div class="text-caption text-green-2">Real-time Tracker</div>
+      </div>
+
+      <q-list dense class="q-pt-sm">
+        <q-item-label header class="q-mt-sm">目前監看點</q-item-label>
         <q-item v-for="(w, index) in watchers" :key="w.lineParam + w.homeId" clickable dense>
           <q-item-section>
             <q-item-label>{{ w.label || w.lineParam }}</q-item-label>
@@ -308,3 +320,26 @@ export default defineComponent({
   }
 })
 </script>
+
+<style scoped lang="scss">
+.drawer-header {
+  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.logo-avatar {
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  background-color: white;
+  padding: 2px;
+}
+
+.logo-toolbar-avatar {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background-color: white;
+  padding: 1px;
+}
+</style>
