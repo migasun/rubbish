@@ -323,7 +323,7 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .drawer-header {
-  background: linear-gradient(135deg, #076293 0%, #B83900 100%);
+  background: #076293;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -332,11 +332,10 @@ export default defineComponent({
 }
 
 .logo-avatar {
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .logo-toolbar-avatar {
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  /* No border */
 }
 </style>
