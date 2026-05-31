@@ -422,10 +422,10 @@ export default defineComponent({
                 <svg viewBox="0 0 64 64" width="36" height="36" style="filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));">
                   <!-- Base chassis (black/grey) -->
                   <rect x="10" y="38" width="44" height="6" fill="#424242" rx="1" />
-                  <!-- Cargo body (green recycling truck) -->
-                  <path d="M12 20 h26 v18 H12 z" fill="#2E7D32" />
+                  <!-- Cargo body (yellow garbage truck) -->
+                  <path d="M12 20 h26 v18 H12 z" fill="#FBC02D" />
                   <!-- Slanted back of the cargo body -->
-                  <path d="M8 26 l4-6 v18 l-4-4 z" fill="#1B5E20" />
+                  <path d="M8 26 l4-6 v18 l-4-4 z" fill="#F57F17" />
                   <!-- Driver cabin (white/light grey) -->
                   <path d="M38 24 h10 l4 6 v8 H38 z" fill="#EEEEEE" />
                   <!-- Cabin window (dark blue/grey) -->

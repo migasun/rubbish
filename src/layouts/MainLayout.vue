@@ -27,7 +27,7 @@
           <img src="~assets/app-logo.png" alt="App Logo">
         </q-avatar>
         <div class="text-subtitle1 text-weight-bold">垃圾車即時追蹤</div>
-        <div class="text-caption text-green-2">Real-time Tracker</div>
+        <div class="text-caption text-amber-2">Real-time Tracker</div>
       </div>
 
       <q-list dense class="q-pt-sm">
@@ -323,7 +323,7 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .drawer-header {
-  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+  background: linear-gradient(135deg, #003366 0%, #981b1e 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -332,14 +332,11 @@ export default defineComponent({
 }
 
 .logo-avatar {
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  background-color: white;
-  padding: 2px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .logo-toolbar-avatar {
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  background-color: white;
-  padding: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
 }
 </style>
